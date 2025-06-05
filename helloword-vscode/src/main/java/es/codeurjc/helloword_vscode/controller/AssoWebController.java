@@ -107,7 +107,7 @@ public class AssoWebController {
 
             model.addAttribute("association", association);
             model.addAttribute("minutes", association.minutes());
-            model.addAttribute("hasImage", association.imageFile() != null);
+            model.addAttribute("hasImage", association.image());
             model.addAttribute("isAdmin", isAdmin);
 
             List<Map<String, Object>> memberTypeData = association.memberTypes().stream().map(mt -> {
@@ -247,7 +247,7 @@ public class AssoWebController {
         List<MinuteDTO> minutes = Collections.emptyList();
         List<MemberTypeDTO> memberTypes = Collections.emptyList();
 
-        AssociationDTO dto = new AssociationDTO(id, request.name(), image, null, memberTypes, minutes);
+        AssociationDTO dto = new AssociationDTO(id, request.name(), image, memberTypes, minutes);
         AssociationDTO saved = associationService.createOrReplaceAssociation(id, dto);
 
         MultipartFile imageField = request.imageField();
