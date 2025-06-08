@@ -12,6 +12,8 @@ import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.MemberDTO;
 import es.codeurjc.helloword_vscode.dto.MemberDetailsDTO;
 import es.codeurjc.helloword_vscode.service.MemberService;
+
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,5 +43,15 @@ public class MemberRestController {
         }
     }
     
+    // DELETE member
+    @DeleteMapping("/{id}")
+    public ResponseEntity<MemberDTO> deleteMember(@PathVariable long id) throws Exception {
+        try {
+            MemberDTO deleted = memberService.deleteMemberDTO(id);
+            return ResponseEntity.ok(deleted);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
     
 }
