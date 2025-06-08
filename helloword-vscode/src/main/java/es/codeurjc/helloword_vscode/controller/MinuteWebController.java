@@ -78,30 +78,6 @@ public class MinuteWebController {
         return "redirect:/association/" + assoId;
     }
 
-   
-    /* Edit minute page */
-    /*@GetMapping("/minute/{minuteId}/asso/{assoId}/edit")
-    @PreAuthorize("hasRole('ADMIN')")
-	public String editMinute(Model model, @PathVariable Long assoId, @PathVariable Long minuteId) {
-		// Retrieve the association and minute by their IDs
-        Optional<Association> association = associationService.findById(assoId);
-        Minute minute = minuteService.findById(minuteId).orElseThrow();
-        
-        // Add association, minute, and related data to the model
-        model.addAttribute("association", association.get());
-        model.addAttribute("minute", minute);
-        model.addAttribute("today", LocalDate.now());
-        model.addAttribute("members", minuteService.findMembers(association.get()));
-        model.addAttribute("participants", minuteService.findParticipants(minute));
-        model.addAttribute("noPart", minuteService.findNoParticipants(association.get(), minute));
-
-		if (association.isPresent()) {
-			return "editMinutePage";
-		} else {
-			return "redirect:/";
-		}
-	}*/
-
 
     /* Edit minute page */
     @GetMapping("/minute/{minuteId}/asso/{assoId}/edit")

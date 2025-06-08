@@ -9,14 +9,16 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {MemberMapper.class, AssociationBasicMapper.class})
 public interface MinuteMapper {
 
     MinuteDTO toDTO(Minute minute);
 
     List<MinuteDTO> toDTOs(Collection<Minute> minutes);
 
+    // Optionnel si tu veux du bidirectionnel
     @Mapping(target = "participants", ignore = true)
     @Mapping(target = "association", ignore = true)
     Minute toDomain(MinuteDTO minuteDTO);
 }
+

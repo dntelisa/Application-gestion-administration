@@ -56,9 +56,11 @@ public class MinuteService {
 	private MemberMapper memberMapper;
 
 	/* Find all minutes */
-	public Collection<MinuteDTO> findAllDTOs() {
-    	return toDTOs(minuteRepository.findAll());
+	public List<MinuteDTO> findAllDTOs() {
+		List<Minute> minutes = minuteRepository.findAll();
+		return minuteMapper.toDTOs(minutes);
 	}
+
 
 	/* Save minute */
 	public void save (Minute minute) throws IOException{
@@ -227,6 +229,8 @@ public class MinuteService {
         minute.setAssociation(association);
 		minuteRepository.save(minute);
 	}
+
+	
 
 	/* Convert entity to DTO */
 	public MinuteDTO toDTO(Minute minute) {
