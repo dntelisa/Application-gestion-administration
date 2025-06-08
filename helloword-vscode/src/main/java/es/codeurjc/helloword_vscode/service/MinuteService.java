@@ -21,6 +21,7 @@ import es.codeurjc.helloword_vscode.dto.MinuteDTO;
 import es.codeurjc.helloword_vscode.dto.MemberDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.MinuteMapper;
+import es.codeurjc.helloword_vscode.dto.NewMinuteRequestDTO;
 import es.codeurjc.helloword_vscode.dto.MemberMapper;
 import es.codeurjc.helloword_vscode.dto.AssociationMapper;
 
@@ -132,45 +133,12 @@ public class MinuteService {
 		}
 	}
 	
-	/* Create new minute */
-	public Map<String, Object> processCreateMinuteDTO(AssociationDTO associationDTO, String dateStr, List<Long> participantIds, String content, double duration) {
-		Association association = toDomain(associationDTO);
-		
-		Map<String, Object> model = new HashMap<>();
-		model.put("association", association);
-		model.put("members", association.getMembers());
 
-		try {
-			LocalDate date = LocalDate.parse(dateStr);
-			if (date.isAfter(LocalDate.now())) {
-				model.put("error", "The date can not be in the futur");
-				return model;
-			}
-
-			Minute minute = new Minute();
-			minute.setDate(dateStr);
-			List<Member> participants = participantIds.stream()
-				.map(id -> memberService.findById(id).orElse(null))
-				.filter(Objects::nonNull)
-				.collect(Collectors.toList());
-			minute.setParticipants(participants);
-			minute.setContent(content);
-			minute.setDuration(duration);
-			minute.setAssociation(association);
-
-			minuteRepository.save(minute);
-			return model;
-		} catch (DateTimeParseException e) {
-			model.put("error", "Invalid date format.");
-			return model;
-		}
-	}
-
-	public MinuteDTO createMinute(AssociationDTO associationDTO, String dateStr, List<Long> participantIds, String content, double duration) {
+	public MinuteDTO createMinute(AssociationDTO associationDTO, NewMinuteRequestDTO dto) {
 
 		LocalDate date;
 		try {
-			date = LocalDate.parse(dateStr);
+			date = LocalDate.parse(dto.date());
 		} catch (DateTimeParseException e) {
 			throw new IllegalArgumentException("Invalid date format.");
 		}
@@ -181,16 +149,16 @@ public class MinuteService {
 
 		Association association = toDomain(associationDTO);
 
-		List<Member> participants = participantIds.stream()
+		List<Member> participants = dto.participantsIds().stream()
 			.map(id -> memberService.findById(id).orElse(null))
 			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
 
 		Minute minute = new Minute();
-		minute.setDate(dateStr);
+		minute.setDate(dto.date());
 		minute.setParticipants(participants);
-		minute.setContent(content);
-		minute.setDuration(duration);
+		minute.setContent(dto.content());
+		minute.setDuration(dto.duration());
 		minute.setAssociation(association);
 
 		minuteRepository.save(minute);

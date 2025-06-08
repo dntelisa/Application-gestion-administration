@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.MinuteDTO;
+import es.codeurjc.helloword_vscode.dto.NewMinuteRequestDTO;
 import es.codeurjc.helloword_vscode.model.Association;
 import es.codeurjc.helloword_vscode.service.AssociationService;
 import es.codeurjc.helloword_vscode.service.MemberService;
@@ -38,15 +39,12 @@ public class MinuteWebController {
     /* Create minute */
     @PostMapping("/association/{id}/new_minute")
     public String createMinuteDTO(@PathVariable long id,
-                                @RequestParam String date,
-                                @RequestParam List<Long> participantsIds,
-                                @RequestParam String content,
-                                @RequestParam double duration,
+                                NewMinuteRequestDTO dto,
                                 Model model) throws Exception {
         AssociationDTO assoDTO = associationService.findByIdDTO(id);
 
         try {
-            MinuteDTO newMinute = minuteService.createMinute(assoDTO, date, participantsIds, content, duration);
+            minuteService.createMinute(assoDTO, dto);
             return "redirect:/association/" + id;
         } catch (IllegalArgumentException e) {
             model.addAttribute("association", assoDTO);
@@ -128,7 +126,7 @@ public class MinuteWebController {
         //Minute minute = minuteService.findById(minuteId).orElseThrow();
         MinuteDTO minuteDTO = minuteService.findByIdDTO(minuteId);
         Optional<Association> association = associationService.findById(assoId);
-        AssociationDTO associationDTO = associationService.findByIdDTO(assoId);
+        associationService.findByIdDTO(assoId);
         if(association.isPresent()){
             // Save the updated minute
             minuteService.updateDTO(minuteDTO, date, participantsIds, content, duration, association.get());
