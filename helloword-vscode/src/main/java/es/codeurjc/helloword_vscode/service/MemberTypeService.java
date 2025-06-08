@@ -12,6 +12,7 @@ import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.MemberDTO;
 import es.codeurjc.helloword_vscode.dto.MemberMapper;
 import es.codeurjc.helloword_vscode.dto.MemberTypeDTO;
+import es.codeurjc.helloword_vscode.dto.MemberTypeLightDTO;
 import es.codeurjc.helloword_vscode.dto.MemberTypeMapper;
 import es.codeurjc.helloword_vscode.model.Association;
 import es.codeurjc.helloword_vscode.model.Member;
@@ -102,7 +103,7 @@ public class MemberTypeService {
   public MemberDTO getPresidentDTO(AssociationDTO associationDTO) {
     return associationDTO.memberTypes().stream()
         .filter(mt -> "president".equalsIgnoreCase(mt.name()))
-        .map(MemberTypeDTO::member)
+        .map(MemberTypeLightDTO::member)
         .findFirst()
         .orElseThrow(() -> new IllegalStateException("No president found for the association"));
   }

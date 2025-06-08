@@ -6,6 +6,6 @@ public record AssociationDTO (
     Long id,
     String name,
     boolean image,
-    List<MemberTypeDTO> memberTypes,
-    List<MinuteDTO> minutes
+    List<MemberTypeLightDTO> memberTypes,
+    List<MinuteLightDTO> minutes
 ){}

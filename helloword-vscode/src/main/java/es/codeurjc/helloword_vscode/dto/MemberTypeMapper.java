@@ -11,7 +11,7 @@ import es.codeurjc.helloword_vscode.model.MemberType;
 @Mapper(componentModel = "spring", uses = {MemberMapper.class, AssociationMapper.class})
 public interface MemberTypeMapper {
 
-    @Mapping(source = "association", target = "association")
+    @Mapping(target = "association", ignore = true)
     @Mapping(source = "member", target = "member")
     MemberTypeDTO toDTO(MemberType memberType);
 

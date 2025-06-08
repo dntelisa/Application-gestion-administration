@@ -113,7 +113,10 @@ public class AssociationService {
 
 	/* Find association by ID */
 	public AssociationDTO findByIdDTO(long id) {
-		return toDTO(associationRepository.findById(id).orElseThrow());
+    	Association asso = associationRepository.findById(id)
+        	.orElseThrow(() -> new ResourceNotFoundException("Association not found"));
+
+    	return associationMapper.toDTO(asso);
 	}
 
 	/* Find association by ID */

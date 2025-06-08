@@ -30,7 +30,9 @@ import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.MemberDTO;
 import es.codeurjc.helloword_vscode.dto.MemberTypeDTO;
+import es.codeurjc.helloword_vscode.dto.MemberTypeLightDTO;
 import es.codeurjc.helloword_vscode.dto.MinuteDTO;
+import es.codeurjc.helloword_vscode.dto.MinuteLightDTO;
 import es.codeurjc.helloword_vscode.dto.NewAssoRequestDTO;
 import es.codeurjc.helloword_vscode.service.AssociationService;
 import es.codeurjc.helloword_vscode.service.MemberService;
@@ -244,8 +246,8 @@ public class AssoWebController {
             image = (removeImage != null && removeImage) ? false : old.image();
         }
 
-        List<MinuteDTO> minutes = Collections.emptyList();
-        List<MemberTypeDTO> memberTypes = Collections.emptyList();
+        List<MinuteLightDTO> minutes = Collections.emptyList();
+        List<MemberTypeLightDTO> memberTypes = Collections.emptyList();
 
         AssociationDTO dto = new AssociationDTO(id, request.name(), image, memberTypes, minutes);
         AssociationDTO saved = associationService.createOrReplaceAssociation(id, dto);

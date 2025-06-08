@@ -7,6 +7,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import es.codeurjc.helloword_vscode.model.Association;
+import es.codeurjc.helloword_vscode.model.MemberType;
+import es.codeurjc.helloword_vscode.model.Minute;
 
 @Mapper(componentModel = "spring")
 public interface AssociationMapper {
@@ -20,5 +22,13 @@ public interface AssociationMapper {
     AssociationDTO toDTO(Association association);
 
     List<AssociationDTO> toDTOs(Collection<Association> associations);
+
+    MemberTypeLightDTO toLightDTO(MemberType memberType);
+
+    MinuteLightDTO toLightDTO(Minute minute);
+
+    List<MemberTypeLightDTO> toLightDTOs(List<MemberType> memberTypes);
+
+    List<MinuteLightDTO> toLightMinutes(List<Minute> minutes);
 }
 
