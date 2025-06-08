@@ -17,15 +17,16 @@ import es.codeurjc.helloword_vscode.service.MemberService;
 import es.codeurjc.helloword_vscode.service.AssociationService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
+import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.MemberDTO;
+import es.codeurjc.helloword_vscode.dto.MemberDetailsDTO;
 import es.codeurjc.helloword_vscode.dto.NewMemberRequestDTO;
 import es.codeurjc.helloword_vscode.model.Member;
 
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 public class MemberWebController {
@@ -71,34 +72,33 @@ public class MemberWebController {
     /* User profile page */ 
     @GetMapping("/profile")
     public String profile(Model model, HttpServletRequest request) {
-        // Retrieve the username of the authenticated user
         String name = request.getUserPrincipal().getName();
-        Optional<Member> member = memberService.findByName(name);
-        
-        if(member.isPresent()){
-            // Add the username and admin status to the model
-            model.addAttribute("username", member.get());
+
+        try {
+            MemberDTO member = memberService.findByNameDTO(name);
+            MemberDetailsDTO memberDetails = memberService.findDetailsById(member.id());
+
+            model.addAttribute("memberAttribute", memberDetails);
             return "profile";
-        } else { 
+        } catch (Exception e) {
             return "redirect:/";
         }
     }
 
 
+
     /* Displays details of a specific user */ 
     @GetMapping("/user/{id}")
     public String userId(@PathVariable long id, Model model) {
-        Optional<Member> memberOpt = memberService.findById(id);
-        if (memberOpt.isPresent()) {
-            Member member = memberOpt.get();
-            model.addAttribute("memberAttribute", member);
-            model.addAttribute("associationRoles", memberService.getAssociationRoles(member));
-            model.addAttribute("userMinutes", memberService.getUserMinutes(member));
+        try {
+            MemberDetailsDTO memberDetails = memberService.findDetailsById(id);
+            model.addAttribute("memberAttribute", memberDetails); // Complete DTO
             return "user_detail";
-        } else {
+        } catch (ResourceNotFoundException e) {
             return "user_not_found";
         }
     }
+
 
 
     /* Research of a specific association or user by ID */
@@ -184,11 +184,13 @@ public class MemberWebController {
     @PreAuthorize("isAuthenticated()")
     public String deleteOwnAccount(Principal principal, HttpServletRequest request) throws IOException {
         String username = principal.getName();
-        Optional<Member> member = memberService.findByName(username);
 
-        if (member.isPresent()) {
-            // Delete the user by ID
-            memberService.delete(member.get());
+        try {
+            Member member = memberService.findByName(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+            // Delete user
+            memberService.delete(member);
 
             // Logout after deletion
             try {
@@ -198,7 +200,7 @@ public class MemberWebController {
             }
 
             return "redirect:/";
-        } else {
+        } catch (ResourceNotFoundException e) {
             return "redirect:/";
         }
     }

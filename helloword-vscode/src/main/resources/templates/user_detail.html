@@ -5,31 +5,35 @@
 </head>
 <body>
     {{> header}}
+
     <h2>Info User</h2>
-        <p>{{memberAttribute.name}} {{memberAttribute.surname}}</p>
+    <p>{{memberAttribute.name}} {{memberAttribute.surname}}</p>
+
     <ul>
         <h3>Associations and member type :</h3>
-        {{#associationRoles}}
+        {{#memberAttribute.roles}}
             <li>
                 <a href="/association/{{associationId}}">{{associationName}}</a> - <strong>Member Type:</strong> {{memberType}}
             </li>
-        {{/associationRoles}}
-        {{^associationRoles}}
+        {{/memberAttribute.roles}}
+        {{^memberAttribute.roles}}
             <li>Not part of an association.</li>
-        {{/associationRoles}}
+        {{/memberAttribute.roles}}
     </ul>
+
     <h3>Minutes of meetings attended by this user :</h3>
     <ul>
-        {{#userMinutes}}
+        {{#memberAttribute.participatedMinutes}}
             <li>{{date}} - {{content}} ({{duration}} minutes)</li>
-        {{/userMinutes}}
-        {{^userMinutes}}
+        {{/memberAttribute.participatedMinutes}}
+        {{^memberAttribute.participatedMinutes}}
             <li>No participation in a meeting.</li>
-        {{/userMinutes}}
+        {{/memberAttribute.participatedMinutes}}
     </ul>
+
     {{#isAdmin}}
-            <a href="/profile/{{memberAttribute.id}}/delete"><button>Delete Profile</button></a>
+        <a href="/profile/{{memberAttribute.id}}/delete"><button>Delete Profile</button></a>
     {{/isAdmin}}
+
     {{> footer}}
 </body>
-</html>

@@ -5,12 +5,16 @@
 </head>
 <body>
     {{> header}}
+
     <h2>Info User</h2>
-    <p>Hello {{username.name}}.</p>
+    <p>Hello {{memberAttribute.name}}.</p>
+
     {{#isAdmin}}
-	    <p>You're admin</p>
-	{{/isAdmin}}
+        <p>You're admin</p>
+    {{/isAdmin}}
+
     <a href="/profile/edit"><button>Edit Profile</button></a>
     <a href="/profile/delete"><button>Delete Profile</button></a>
 </body>
+
 </html>
