@@ -1,5 +1,6 @@
 package es.codeurjc.helloword_vscode.controller;
 
+import java.sql.SQLException;
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +12,14 @@ import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.MemberDTO;
 import es.codeurjc.helloword_vscode.dto.MemberDetailsDTO;
+import es.codeurjc.helloword_vscode.dto.NewMemberRequestDTO;
 import es.codeurjc.helloword_vscode.service.MemberService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 
@@ -54,4 +58,16 @@ public class MemberRestController {
         }
     }
     
+
+    // PUT update member
+    @PutMapping("/{id}")
+    public ResponseEntity<MemberDTO> updateMember(@PathVariable long id,
+                                                            @RequestBody NewMemberRequestDTO updatedDTO) throws SQLException {
+        try {
+            MemberDTO updated = memberService.updateUserIdDTO(id, updatedDTO);
+            return ResponseEntity.ok(updated);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

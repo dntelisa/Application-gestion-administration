@@ -165,33 +165,6 @@ public class MemberService implements UserDetailsService {
 	}
 
 
-	/* Delete user by ID */
-	@Transactional
-	public void deleteById(long id) throws IOException {
-		// Retrieve user by ID
-		Optional<Member> optUser = memberRepository.findById(id);
-		if (optUser.isPresent()) {
-			Member user = optUser.get();
-
-			// 1. Delete member type in association
-			List<MemberType> memberTypes = memberTypeService.findByMember(user);
-			for (MemberType memberType : memberTypes) {
-				memberTypeService.delete(memberType);
-			}
-
-			// 2. Delete participation to meetings
-			List<Minute> minutes = minuteService.findAllByParticipantsContains(user);
-			for (Minute minute : minutes) {
-				minute.getParticipants().remove(user);
-				minuteService.save(minute);
-			}
-
-			// 3. Delete user
-			memberRepository.delete(user);
-		}
-	}
-
-
 	/* Update user */
 	public void updateUserDTO(String currentUsername, NewMemberRequestDTO dto) {
 		Member member = findByName(currentUsername).orElseThrow();
@@ -208,6 +181,25 @@ public class MemberService implements UserDetailsService {
 		}
 
 		save(member);
+	}
+
+	/* Update user by id*/
+	public MemberDTO updateUserIdDTO(Long id, NewMemberRequestDTO dto) {
+		Member member = findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		if (!member.getName().equals(dto.name()) && findByName(dto.name()).isPresent()) {
+			throw new IllegalArgumentException("This username already exists");
+		}
+
+		member.setName(dto.name());
+		member.setSurname(dto.surname());
+
+		if (dto.password() != null && !dto.password().isBlank()) {
+			member.setPwd(passwordEncoder.encode(dto.password()));
+		}
+
+		save(member);
+		return toDTO(member);
 	}
 
 
