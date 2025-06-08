@@ -98,7 +98,7 @@ public class SecurityConfiguration {
 	}
 
 	@Bean
-    @Order(1)
+    @Order(2)
     // Configure method with http object for security
     public SecurityFilterChain webFilterChain(HttpSecurity http) throws Exception {
         // Set the authentication provider
@@ -121,8 +121,6 @@ public class SecurityConfiguration {
                     "/association/*/image"
                 ).permitAll()
                 
-                .requestMatchers("/api/associations/").permitAll()
-
                  // Pages accessible to users with role "USER"
                 .requestMatchers(
                     "/profile", 
