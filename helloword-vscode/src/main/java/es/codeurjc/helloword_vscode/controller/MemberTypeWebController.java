@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import es.codeurjc.helloword_vscode.service.MemberService;
 import es.codeurjc.helloword_vscode.service.MemberTypeService;
 
 
@@ -26,8 +25,6 @@ public class MemberTypeWebController {
     @Autowired
     private MemberTypeService memberTypeService;
 
-    @Autowired
-    private MemberService memberService;
 
     /* Adds authentication attributes to all templates */ 
     @ModelAttribute

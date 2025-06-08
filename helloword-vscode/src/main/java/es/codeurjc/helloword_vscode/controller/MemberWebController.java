@@ -64,7 +64,7 @@ public class MemberWebController {
     @GetMapping("/members")
     public String showMembers(Model model) {
         // Fetch all users and add them to the model
-        model.addAttribute("isMember", memberService.findAll());
+        model.addAttribute("isMember", memberService.findAllDTOs());
         return "members";
     }
 

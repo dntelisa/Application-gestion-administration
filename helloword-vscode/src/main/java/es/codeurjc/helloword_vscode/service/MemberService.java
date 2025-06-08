@@ -26,8 +26,10 @@ import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationMemberTypeDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationMemberTypeMapper;
 import es.codeurjc.helloword_vscode.dto.MemberDTO;
+import es.codeurjc.helloword_vscode.dto.MemberDetailsDTO;
 import es.codeurjc.helloword_vscode.dto.MemberMapper;
 import es.codeurjc.helloword_vscode.dto.MemberTypeMapper;
+import es.codeurjc.helloword_vscode.dto.MinuteLightDTO;
 import es.codeurjc.helloword_vscode.dto.NewMemberRequestDTO;
 import es.codeurjc.helloword_vscode.model.Association;
 import es.codeurjc.helloword_vscode.model.Member;
@@ -138,9 +140,28 @@ public class MemberService implements UserDetailsService {
 		return toDTO(memberRepository.findById(id).orElseThrow());
 	}
 
-	/* Find all users */
-	public List<Member> findAll() {
-		return memberRepository.findAll();
+	/* All details of an user */
+	public MemberDetailsDTO findDetailsById(Long id) {
+		Member member = memberRepository.findById(id)
+			.orElseThrow(() -> new ResourceNotFoundException("Member not found"));
+
+		List<AssociationMemberTypeDTO> roles = associationMemberTypeMapper.toDTOs(member.getMemberTypes());
+		List<MinuteLightDTO> minutes = memberMapper.toShortMinutes(member.getMinutes());
+
+		return new MemberDetailsDTO(
+			member.getId(),
+			member.getName(),
+			member.getSurname(),
+			roles,
+			minutes
+		);
+	}
+
+
+	
+	/* Find all associations */
+	public Collection<MemberDTO> findAllDTOs() {
+    	return toDTOs(memberRepository.findAll());
 	}
 
 

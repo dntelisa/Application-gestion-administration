@@ -19,11 +19,6 @@ public interface MemberTypeMapper {
     
     @Mapping(source = "association", target = "association")
     @Mapping(source = "member", target = "member")
-    @Mapping(target = "association.image", ignore = true)
-    @Mapping(target = "association.imageFile", ignore = true)
-    @Mapping(target = "association.memberTypes", ignore = true)
-    @Mapping(target = "association.minutes", ignore = true)
-    @Mapping(target = "association.members", ignore = true)
     MemberType toDomain(MemberTypeDTO dto);
 }
 

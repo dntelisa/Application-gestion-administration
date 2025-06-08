@@ -7,9 +7,21 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import es.codeurjc.helloword_vscode.model.Member;
+import es.codeurjc.helloword_vscode.model.MemberType;
+import es.codeurjc.helloword_vscode.model.Minute;
 
 @Mapper(componentModel = "spring")
 public interface MemberMapper {
+
+    @Mapping(source = "association.id", target = "associationId")
+    @Mapping(source = "name", target = "memberType")
+    AssociationMemberTypeDTO toRoleDTO(MemberType memberType);
+
+    MinuteLightDTO toShortDTO(Minute minute);
+
+    List<AssociationMemberTypeDTO> toRoleDTOs(List<MemberType> memberTypes);
+
+    List<MinuteLightDTO> toShortMinutes(List<Minute> minutes);
 
     @Mapping(target = "memberTypes", ignore = true)
     @Mapping(target = "pwd", ignore = true)
@@ -23,5 +35,4 @@ public interface MemberMapper {
 
     List<MemberDTO> toDTOs(Collection<Member> members);
 }
-
 
