@@ -16,6 +16,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 
+import es.codeurjc.helloword_vscode.security.jwt.CustomAccessDeniedHandler;
 import es.codeurjc.helloword_vscode.security.jwt.JwtRequestFilter;
 import es.codeurjc.helloword_vscode.security.jwt.UnauthorizedHandlerJwt;
 import es.codeurjc.helloword_vscode.service.MemberService;
@@ -33,6 +34,9 @@ public class SecurityConfiguration {
 
 	@Autowired
 	private JwtRequestFilter jwtRequestFilter;
+
+    @Autowired
+    private CustomAccessDeniedHandler accessDeniedHandler;
     
     /* Bean for password encoding */
 	@Bean
@@ -67,7 +71,10 @@ public class SecurityConfiguration {
 		
 		http
 			.securityMatcher("/api/**")
-			.exceptionHandling(handling -> handling.authenticationEntryPoint(unauthorizedHandlerJwt));
+			.exceptionHandling(handling -> handling
+                .authenticationEntryPoint(unauthorizedHandlerJwt)
+                .accessDeniedHandler(accessDeniedHandler)
+            );
 		
 		http
 			.authorizeHttpRequests(authorize -> authorize
