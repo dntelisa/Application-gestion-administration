@@ -83,4 +83,15 @@ public class MinuteRestController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    // DELETE minute
+     @DeleteMapping("/{id}")
+    public ResponseEntity<MinuteDTO> deleteMinute(@PathVariable long id) {
+        try {
+            MinuteDTO deleted = minuteService.deleteMinuteByIdDTORest(id);
+            return ResponseEntity.ok(deleted);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

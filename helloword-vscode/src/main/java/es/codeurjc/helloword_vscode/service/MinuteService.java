@@ -95,6 +95,31 @@ public class MinuteService {
 		return minuteDTO;
     }
 
+	/* Delete minute with the controller rest */
+	public MinuteDTO deleteMinuteByIdDTORest(Long minuteId) {
+		Minute minute = minuteRepository.findById(minuteId)
+			.orElseThrow(() -> new ResourceNotFoundException("Minute not found with id: " + minuteId));
+
+		MinuteDTO minuteDTO = toDTO(minute);
+
+		// Dissociate the minute from the association
+		Association association = minute.getAssociation();
+		if (association != null) {
+			association.getMinutes().remove(minute);
+		}
+
+		// Dissociate the participants
+		for (Member member : minute.getParticipants()) {
+			member.getMinutes().remove(minute);
+		}
+
+		// Delete the minute
+		minuteRepository.delete(minute);
+
+		return minuteDTO;
+	}
+
+
 
 	/* Find all Minute entities that contain the specified participant */
 	List<Minute> findAllByParticipantsContains(Member participant){
