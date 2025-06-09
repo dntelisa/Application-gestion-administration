@@ -19,6 +19,7 @@ import java.util.List;
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
+import es.codeurjc.helloword_vscode.dto.EditMinuteRequestDTO;
 import es.codeurjc.helloword_vscode.dto.MinuteDTO;
 import es.codeurjc.helloword_vscode.dto.NewMinuteRequestDTO;
 import es.codeurjc.helloword_vscode.service.AssociationService;
@@ -66,6 +67,18 @@ public class MinuteRestController {
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(null); // ou une réponse JSON avec message
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // PUT update minute
+    @PutMapping("/{id}")
+    public ResponseEntity<MinuteDTO> updateMinute(@PathVariable long id,
+                                                            @RequestBody EditMinuteRequestDTO updatedDTO) throws SQLException {
+        try {
+            MinuteDTO updated = minuteService.updateDTO(id, updatedDTO);
+            return ResponseEntity.ok(updated);
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         }

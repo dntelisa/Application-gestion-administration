@@ -24,7 +24,7 @@ import es.codeurjc.helloword_vscode.dto.MinuteMapper;
 import es.codeurjc.helloword_vscode.dto.NewMinuteRequestDTO;
 import es.codeurjc.helloword_vscode.dto.MemberMapper;
 import es.codeurjc.helloword_vscode.dto.AssociationMapper;
-
+import es.codeurjc.helloword_vscode.dto.EditMinuteRequestDTO;
 import es.codeurjc.helloword_vscode.model.Association;
 import es.codeurjc.helloword_vscode.model.Member;
 import es.codeurjc.helloword_vscode.model.Minute;
@@ -101,39 +101,7 @@ public class MinuteService {
 		return minuteRepository.findAllByParticipantsContains(participant);
 	}
 
-	/* Create new minute */
-	public Map<String, Object> processCreateMinute(Association association, String dateStr, List<Long> participantIds, String content, double duration) {
-		Map<String, Object> model = new HashMap<>();
-		model.put("association", association);
-		model.put("members", association.getMembers());
-
-		try {
-			LocalDate date = LocalDate.parse(dateStr);
-			if (date.isAfter(LocalDate.now())) {
-				model.put("error", "The date can not be in the futur");
-				return model;
-			}
-
-			Minute minute = new Minute();
-			minute.setDate(dateStr);
-			List<Member> participants = participantIds.stream()
-				.map(id -> memberService.findById(id).orElse(null))
-				.filter(Objects::nonNull)
-				.collect(Collectors.toList());
-			minute.setParticipants(participants);
-			minute.setContent(content);
-			minute.setDuration(duration);
-			minute.setAssociation(association);
-
-			minuteRepository.save(minute);
-			return model;
-		} catch (DateTimeParseException e) {
-			model.put("error", "Invalid date format.");
-			return model;
-		}
-	}
-	
-
+	/* Methode to create a new minute */
 	public MinuteDTO createMinute(AssociationDTO associationDTO, NewMinuteRequestDTO dto) {
 
 		LocalDate date;
@@ -166,7 +134,8 @@ public class MinuteService {
 		return toDTO(minute);
 	}
 
-		public List<MemberDTO> findMembersDTO(AssociationDTO associationDTO){
+	/* Method to find all the members of an association */
+	public List<MemberDTO> findMembersDTO(AssociationDTO associationDTO){
 			return memberService.findMembersByAssociationId(associationDTO.id());
 		}
 
@@ -180,25 +149,79 @@ public class MinuteService {
 			List<MemberDTO> members = memberService.findMembersByAssociationId(associationDTO.id());
 			Set<Long> participantIds = minuteDTO.participants().stream().map(MemberDTO::id).collect(Collectors.toSet());
 			return members.stream().filter(m -> !participantIds.contains(m.id())).collect(Collectors.toList());
+	}
+
+	/* Method to update minute for web controller */
+	public void updateDTO(EditMinuteRequestDTO dto) throws IOException {
+		// Retrieving the minute
+		Minute minute = minuteRepository.findById(dto.minuteId())
+			.orElseThrow(() -> new ResourceNotFoundException("Minute not found"));
+
+		// Retrieving association with DTO
+		AssociationDTO associationDTO = associationService.findByIdDTO(dto.assoId());
+		Association association = toDomain(associationDTO);
+
+		// Verify and convert date
+		LocalDate date;
+		try {
+			date = LocalDate.parse(dto.date());
+		} catch (DateTimeParseException e) {
+			throw new IllegalArgumentException("Invalid date format.");
 		}
 
-	public void updateDTO(MinuteDTO minuteDTO, String date, List<Long> participantsIds, String content, double duration, Association association){ //ne marche pas avec AssociationDTO -> pas d'explications
-        // Update minute attributes
-        Minute minute = toDomain(minuteDTO);
-		//Association association = toDomain(associationDTO);
-		minute.setDate(date);
-        List<Member> participants = participantsIds.stream()
-            .map(participantId -> memberService.findById(participantId).orElse(null))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-        minute.setParticipants(participants);
-        minute.setContent(content);
-        minute.setDuration(duration);
-        minute.setAssociation(association);
+		if (date.isAfter(LocalDate.now())) {
+			throw new IllegalArgumentException("The date cannot be in the future.");
+		}
+
+		// Retrieving of the members
+		List<Member> participants = dto.participantsIds().stream()
+			.map(id -> memberService.findById(id).orElse(null))
+			.filter(Objects::nonNull)
+			.collect(Collectors.toList());
+
+		// Update minute
+		minute.setDate(dto.date());
+		minute.setParticipants(participants);
+		minute.setContent(dto.content());
+		minute.setDuration(dto.duration());
+		minute.setAssociation(association);
+
 		minuteRepository.save(minute);
 	}
 
-	
+
+	/* Method to update minute for rest controller */
+	public MinuteDTO updateDTO(Long minuteId, EditMinuteRequestDTO dto) {
+		Minute minute = minuteRepository.findById(minuteId)
+			.orElseThrow(() -> new ResourceNotFoundException("Minute not found"));
+
+		// Parse date
+		LocalDate date;
+		try {
+			date = LocalDate.parse(dto.date());
+		} catch (DateTimeParseException e) {
+			throw new IllegalArgumentException("Invalid date format.");
+		}
+
+		if (date.isAfter(LocalDate.now())) {
+			throw new IllegalArgumentException("The date cannot be in the future.");
+		}
+
+		// Fetch participants
+		List<Member> participants = dto.participantsIds().stream()
+			.map(id -> memberService.findById(id).orElse(null))
+			.filter(Objects::nonNull)
+			.collect(Collectors.toList());
+
+		// Update fields
+		minute.setDate(dto.date());
+		minute.setParticipants(participants);
+		minute.setContent(dto.content());
+		minute.setDuration(dto.duration());
+
+		// Save and return DTO
+		return toDTO(minuteRepository.save(minute));
+	}
 
 	/* Convert entity to DTO */
 	public MinuteDTO toDTO(Minute minute) {

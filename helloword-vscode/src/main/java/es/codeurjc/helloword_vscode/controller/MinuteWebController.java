@@ -10,12 +10,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
+import es.codeurjc.helloword_vscode.dto.EditMinuteRequestDTO;
 import es.codeurjc.helloword_vscode.dto.MinuteDTO;
 import es.codeurjc.helloword_vscode.dto.NewMinuteRequestDTO;
 import es.codeurjc.helloword_vscode.model.Association;
@@ -107,30 +109,19 @@ public class MinuteWebController {
 
     /* Edit minute process */
     @PostMapping("/editminute")
-    public String editMinuteProcess(@RequestParam long minuteId, 
-                                    @RequestParam long assoId,
-                                    @RequestParam String date,
-                                    @RequestParam(required = false) List<Long> participantsIds, 
-                                    @RequestParam String content, 
-                                    @RequestParam double duration, 
-                                    Model model,
-                                    RedirectAttributes redirectAttributes
-                                    ) throws IOException {
-        // Check if participants are selected                                
-        if (participantsIds == null || participantsIds.isEmpty()) {
+    public String editMinuteProcess(@ModelAttribute EditMinuteRequestDTO dto,
+                                    RedirectAttributes redirectAttributes) throws IOException {
+
+        // Validation minimal côté contrôleur
+        if (dto.participantsIds() == null || dto.participantsIds().isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "You need to select at least one participant");
-            return "redirect:/minute/" + minuteId + "/asso/" + assoId + "/edit";
+            return "redirect:/minute/" + dto.minuteId() + "/asso/" + dto.assoId() + "/edit";
         }
-        
-        // Retrieve the minute and association by their IDs
-        //Minute minute = minuteService.findById(minuteId).orElseThrow();
-        MinuteDTO minuteDTO = minuteService.findByIdDTO(minuteId);
-        Optional<Association> association = associationService.findById(assoId);
-        associationService.findByIdDTO(assoId);
-        if(association.isPresent()){
-            // Save the updated minute
-            minuteService.updateDTO(minuteDTO, date, participantsIds, content, duration, association.get());
-        }
-        return "redirect:/association/" + assoId;
+
+        // Délégation complète au service
+        minuteService.updateDTO(dto);
+
+        return "redirect:/association/" + dto.assoId();
     }
+
 }
