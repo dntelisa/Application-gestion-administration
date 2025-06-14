@@ -85,6 +85,15 @@ public class SecurityConfiguration {
 
                     .requestMatchers(HttpMethod.PUT,"/api/members/**").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.DELETE,"/api/members/**").hasRole("ADMIN")
+
+                    .requestMatchers(HttpMethod.POST, "/api/memberTypes/").hasRole("USER")
+                    .requestMatchers(HttpMethod.PUT, "/api/memberTypes/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/memberTypes/**").hasRole("ADMIN")
+
+                    .requestMatchers(HttpMethod.POST, "/api/minutes/**").hasRole("USER")
+                    .requestMatchers(HttpMethod.PUT, "/api/minutes/**").hasRole("USER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/minutes/**").hasRole("ADMIN")
+
 					// PUBLIC ENDPOINTS
 					.anyRequest().permitAll()
 			);

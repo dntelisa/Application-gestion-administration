@@ -2,8 +2,6 @@ package es.codeurjc.helloword_vscode.controller;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,14 +11,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.EditMinuteRequestDTO;
 import es.codeurjc.helloword_vscode.dto.MinuteDTO;
 import es.codeurjc.helloword_vscode.dto.NewMinuteRequestDTO;
-import es.codeurjc.helloword_vscode.model.Association;
 import es.codeurjc.helloword_vscode.service.AssociationService;
 import es.codeurjc.helloword_vscode.service.MemberService;
 import es.codeurjc.helloword_vscode.service.MinuteService;
@@ -94,16 +90,8 @@ public class MinuteWebController {
         model.addAttribute("members", minuteService.findMembersDTO(associationDTO));
         model.addAttribute("participants", minuteService.findParticipantsDTO(minuteDTO));
         model.addAttribute("noPart", minuteService.findNoParticipantsDTO(associationDTO, minuteDTO));
-        //model.addAttribute("members", minuteService.findMembers(association.get()));
-        //model.addAttribute("participants", minuteService.findParticipants(minute));
-        //model.addAttribute("noPart", minuteService.findNoParticipants(association.get(), minute));
 
         return "editMinutePage";
-		/*if (association.isPresent()) {
-			return "editMinutePage";
-		} else {
-			return "redirect:/";
-		}*/
 	}
 
 

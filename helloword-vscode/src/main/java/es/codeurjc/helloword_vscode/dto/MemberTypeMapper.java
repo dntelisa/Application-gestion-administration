@@ -8,11 +8,9 @@ import org.mapstruct.Mapping;
 
 import es.codeurjc.helloword_vscode.model.MemberType;
 
-@Mapper(componentModel = "spring", uses = {MemberMapper.class, AssociationMapper.class})
+@Mapper(componentModel = "spring", uses = {MemberMapper.class, AssociationBasicMapper.class})
 public interface MemberTypeMapper {
 
-    @Mapping(target = "association", ignore = true)
-    @Mapping(source = "member", target = "member")
     MemberTypeDTO toDTO(MemberType memberType);
 
     List<MemberTypeDTO> toDTOs(Collection<MemberType> memberTypes);

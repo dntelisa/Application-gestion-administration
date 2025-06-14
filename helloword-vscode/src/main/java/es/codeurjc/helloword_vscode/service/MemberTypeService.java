@@ -8,17 +8,26 @@ import org.springframework.transaction.annotation.Transactional;
 import es.codeurjc.helloword_vscode.repository.MemberTypeRepository;
 
 import es.codeurjc.helloword_vscode.model.MemberType;
+import es.codeurjc.helloword_vscode.model.Minute;
+import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
+import es.codeurjc.helloword_vscode.dto.EditMTRequestDTO;
+import es.codeurjc.helloword_vscode.dto.EditMinuteRequestDTO;
 import es.codeurjc.helloword_vscode.dto.MemberDTO;
 import es.codeurjc.helloword_vscode.dto.MemberMapper;
 import es.codeurjc.helloword_vscode.dto.MemberTypeDTO;
 import es.codeurjc.helloword_vscode.dto.MemberTypeLightDTO;
 import es.codeurjc.helloword_vscode.dto.MemberTypeMapper;
+import es.codeurjc.helloword_vscode.dto.MinuteDTO;
+import es.codeurjc.helloword_vscode.dto.NewMTRequestDTO;
 import es.codeurjc.helloword_vscode.model.Association;
 import es.codeurjc.helloword_vscode.model.Member;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -53,13 +62,33 @@ public class MemberTypeService {
     memberTypeRepository.save(memberType);
   }
 
+  /* Create member type in web controller */
   public MemberTypeDTO createMemberType(MemberTypeDTO memberTypeDTO) {
-
       if(memberTypeDTO.id() != null) {
           throw new IllegalArgumentException();
       }
-
       MemberType memberType = toDomain(memberTypeDTO);
+      memberType = memberTypeRepository.save(memberType);
+      return toDTO(memberType);
+  }
+
+  /* Create member type in rest controller */
+  public MemberTypeDTO createMemberType(NewMTRequestDTO mtRequestDTO) {
+
+      // Retrieve member
+      Member member = memberService.findById(mtRequestDTO.memberId())
+          .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
+
+      // Retrieve association
+      Association association = associationService.findById(mtRequestDTO.associationId())
+          .orElseThrow(() -> new ResourceNotFoundException("Association not found"));
+
+      // Create object MemberType
+      MemberType memberType = new MemberType(
+          mtRequestDTO.memberType(),  // le nom du rôle
+          member,
+          association
+      );
 
       memberType = memberTypeRepository.save(memberType);
 
@@ -67,19 +96,17 @@ public class MemberTypeService {
   }
 
 
+
   /* Delete member type */
   public void delete(MemberType memberType) {
     memberTypeRepository.delete(memberType);
   }
 
-      public MemberTypeDTO deleteMemberType(long id) {
-
-        MemberType memberType = memberTypeRepository.findById(id).orElseThrow();
-
-        memberTypeRepository.deleteById(id);
-
-        return toDTO(memberType);
-    }
+  public MemberTypeDTO deleteMemberType(long id) {
+    MemberType memberType = memberTypeRepository.findById(id).orElseThrow();
+    memberTypeRepository.deleteById(id);
+    return toDTO(memberType);
+  }
 
 
   /* Find all member type from user */
@@ -164,7 +191,50 @@ public class MemberTypeService {
       save(target);
   }
 
-  
+	/* Method to update member type for rest controller */
+  public MemberTypeDTO updateMTDTO(Long mtId, EditMTRequestDTO dto) {
+
+      MemberType target = memberTypeRepository.findById(mtId)
+              .orElseThrow(() -> new ResourceNotFoundException("Member type not found"));
+
+      Long associationId = target.getAssociation().getId();
+
+      // Prohibiting a president from changing his role
+      if ("president".equalsIgnoreCase(target.getName())
+          && !target.getName().equalsIgnoreCase(dto.name())) {
+          throw new SecurityException("If you want to change role, promote someone else first.");
+      }
+      
+      // Management of the replacement of the president, if there is a new president the old one is demoted to member
+      if ("president".equalsIgnoreCase(dto.name())) {
+          Collection<MemberTypeDTO> memberTypes = findByAssociationIdDTO(associationId);
+          for (MemberTypeDTO mt : memberTypes) {
+              if ("president".equalsIgnoreCase(mt.name())
+                      && !mt.member().id().equals(target.getMember().getId())) {
+                  MemberType previousPresident = findById(mt.id()).orElseThrow();
+                  previousPresident.setName("member");
+                  save(previousPresident);
+              }
+          }
+      }
+
+      // Update member type
+      target.setName(dto.name());
+      save(target);
+
+      return toDTO(target);
+  }
+
+  /* Find all member types */
+  public Collection<MemberTypeDTO> findAllMTDTOs() {
+    return toDTOs(memberTypeRepository.findAll());
+  }
+
+  /* Find one member type by id */
+  public MemberTypeDTO findByIdMTDTO(long id) {
+    return toDTO(memberTypeRepository.findById(id).orElseThrow());
+  }
+
 	/* Convert entity to DTO */
 	private MemberTypeDTO toDTO(MemberType memberType) {
 		return memberTypeMapper.toDTO(memberType);
