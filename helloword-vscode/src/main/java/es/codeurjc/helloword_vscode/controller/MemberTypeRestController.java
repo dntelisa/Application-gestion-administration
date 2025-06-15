@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import org.springframework.security.core.Authentication;
+
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.EditMTRequestDTO;
 
@@ -49,37 +51,52 @@ public class MemberTypeRestController {
 
     // POST create new member type
     @PostMapping("/")
-    public ResponseEntity<MemberTypeDTO> createMemberType(@RequestBody NewMTRequestDTO MTRequestDTO) {
+    public ResponseEntity<MemberTypeDTO> createMemberType(
+            @RequestBody NewMTRequestDTO MTRequestDTO,
+            Authentication authentication) {
         try {
-            MemberTypeDTO created = memberTypeService.createMemberType(MTRequestDTO);
+            MemberTypeDTO created = memberTypeService.createMemberType(MTRequestDTO, authentication);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 
+
+
     // PUT update member type
     @PutMapping("/{id}")
-    public ResponseEntity<MemberTypeDTO> updateMemberType(@PathVariable long id,
-                                                            @RequestBody EditMTRequestDTO updatedDTO) throws SQLException {
+    public ResponseEntity<MemberTypeDTO> updateMemberType(
+            @PathVariable long id,
+            @RequestBody EditMTRequestDTO updatedDTO,
+            Authentication authentication) throws SQLException {
         try {
-            MemberTypeDTO updated = memberTypeService.updateMTDTO(id, updatedDTO);
+            MemberTypeDTO updated = memberTypeService.updateMTDTO(id, updatedDTO, authentication);
             return ResponseEntity.ok(updated);
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 
     // DELETE member type
     @DeleteMapping("/{id}")
-    public ResponseEntity<MemberTypeDTO> deleteMemberType(@PathVariable long id) {
+    public ResponseEntity<MemberTypeDTO> deleteMemberType(
+            @PathVariable long id,
+            Authentication authentication) {
         try {
-            MemberTypeDTO deleted = memberTypeService.deleteMemberType(id);
+            MemberTypeDTO deleted = memberTypeService.deleteMemberType(id, authentication);
             return ResponseEntity.ok(deleted);
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
+
 }
