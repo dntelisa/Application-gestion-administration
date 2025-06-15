@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.hibernate.engine.jdbc.BlobProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,18 +16,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import es.codeurjc.helloword_vscode.model.MemberType;
 import es.codeurjc.helloword_vscode.model.Minute;
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
-import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationMemberTypeDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationMemberTypeMapper;
 import es.codeurjc.helloword_vscode.dto.MemberDTO;
 import es.codeurjc.helloword_vscode.dto.MemberDetailsDTO;
 import es.codeurjc.helloword_vscode.dto.MemberMapper;
-import es.codeurjc.helloword_vscode.dto.MemberTypeMapper;
 import es.codeurjc.helloword_vscode.dto.MinuteLightDTO;
 import es.codeurjc.helloword_vscode.dto.NewMemberRequestDTO;
 import es.codeurjc.helloword_vscode.model.Association;
@@ -144,6 +140,7 @@ public class MemberService implements UserDetailsService {
 	public MemberDetailsDTO findDetailsById(Long id) {
 		Member member = memberRepository.findById(id)
 			.orElseThrow(() -> new ResourceNotFoundException("Member not found"));
+
 
 		List<AssociationMemberTypeDTO> roles = associationMemberTypeMapper.toDTOs(member.getMemberTypes());
 		List<MinuteLightDTO> minutes = memberMapper.toShortMinutes(member.getMinutes());

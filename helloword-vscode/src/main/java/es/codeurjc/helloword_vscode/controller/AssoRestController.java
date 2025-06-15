@@ -1,9 +1,12 @@
 package es.codeurjc.helloword_vscode.controller;
 
+import java.io.IOException;
 import java.net.URI;
 import java.sql.SQLException;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,8 +15,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import static org.springframework.web.servlet.support.ServletUriComponentsBuilder.fromCurrentRequest;
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
@@ -44,6 +50,20 @@ public class AssoRestController {
         }
     }
 
+    // GET association with image
+	@GetMapping("/{id}/image")
+	public ResponseEntity<Object> getAssociationImage(@PathVariable long id) throws SQLException, IOException {
+
+		Resource associationImage = associationService.getAssociationImage(id);
+
+		return ResponseEntity
+				.ok()
+				.header(HttpHeaders.CONTENT_TYPE, "image/jpeg")
+				.body(associationImage);
+
+	}
+
+
     // POST create new association
     @PostMapping("/")
     public ResponseEntity<AssociationDTO> createAssociation(@RequestBody AssociationDTO associationDTO) {
@@ -57,6 +77,18 @@ public class AssoRestController {
         return ResponseEntity.created(location).body(created);
     }
 
+    // POST add image to an association
+    @PostMapping("/{id}/image")
+    public ResponseEntity<Object> createAssoImage(
+        @PathVariable long id, @RequestParam MultipartFile imageFile) throws IOException {
+
+        URI location = fromCurrentRequest().build().toUri();
+        associationService.createAssoImage(id, location, imageFile.getInputStream(), imageFile.getSize());
+        return ResponseEntity.created(location).build();
+
+    }
+
+
     // PUT update association
     @PutMapping("/{id}")
     public ResponseEntity<AssociationDTO> updateAssociation(@PathVariable long id,
@@ -69,6 +101,15 @@ public class AssoRestController {
         }
     }
 
+    // PUT update association with image
+    @PutMapping("/{id}/image")
+        public ResponseEntity<Object> replacePostImage(
+        @PathVariable long id, @RequestParam MultipartFile imageFile) throws IOException {
+        associationService.replaceAssociationImage(id, imageFile.getInputStream(), imageFile.getSize());
+        return ResponseEntity.noContent().build();
+    }
+
+
     // DELETE association
     @DeleteMapping("/{id}")
     public ResponseEntity<AssociationDTO> deleteAssociation(@PathVariable long id) {
@@ -79,5 +120,14 @@ public class AssoRestController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    // DELETE association with image
+	@DeleteMapping("/{id}/image")
+	public ResponseEntity<Object> deleteAssociationImage(@PathVariable long id) throws IOException {
+
+		associationService.deleteAssociationImage(id);
+
+		return ResponseEntity.noContent().build();
+	}
 }
 

@@ -26,6 +26,8 @@ public class Association {
     @Lob
     private Blob imageFile;
 
+    private String imagePath; 
+
     private boolean image;
 
     @OneToMany(mappedBy = "association", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -68,6 +70,14 @@ public class Association {
 
     public void setImage(boolean image){
 		this.image = image;
+	}
+
+    public void setImagePath(String imagePath){
+		this.imagePath = imagePath;
+	}
+
+    public String getImagePath(){
+		return imagePath;
 	}
 
     public long getId() {

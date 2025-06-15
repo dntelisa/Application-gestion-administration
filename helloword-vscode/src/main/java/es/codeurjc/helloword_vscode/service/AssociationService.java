@@ -16,6 +16,7 @@ import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -211,7 +212,57 @@ public class AssociationService {
 		return toDTO(updatedAssociation);
 	}
 
+	/* Add an image in association */
+	public void createAssoImage(long id, URI location, InputStream inputStream, long size) {
 
+		Association association = associationRepository.findById(id)
+			.orElseThrow(() -> new ResourceNotFoundException("Association not found"));
+
+		association.setImage(true);
+		association.setImagePath(location.toString());
+		association.setImageFile(BlobProxy.generateProxy(inputStream, size));
+
+		associationRepository.save(association);
+	}
+
+	/* Retrieve an image of association */
+	public Resource getAssociationImage(long id) throws SQLException {
+
+		Association association = associationRepository.findById(id).orElseThrow();
+
+		if (association.getImageFile() != null) {
+			return new InputStreamResource(association.getImageFile().getBinaryStream());
+		} else {
+			throw new NoSuchElementException();
+		}
+	}
+
+	/* Edit image of an association in REST */
+	public void replaceAssociationImage(long id, InputStream inputStream, long size) {
+		Association association = associationRepository.findById(id).orElseThrow();
+		if(!association.getImage()){
+			throw new NoSuchElementException();
+		}
+		association.setImage(true);
+		association.setImageFile(BlobProxy.generateProxy(inputStream, size));
+		associationRepository.save(association);
+	}
+
+	/* Delete image of an association rest */
+	public void deleteAssociationImage(long id) {
+
+		Association association = associationRepository.findById(id).orElseThrow();
+
+		if(!association.getImage()){
+			throw new NoSuchElementException();
+		}
+
+		association.setImageFile(null);
+		association.setImagePath(null);
+		association.setImage(false);
+
+		associationRepository.save(association);
+	}
 
 	/* Edit an association with image */
 	public void updateAssoImage(Association association, String name, MultipartFile multipartFile) throws IOException {
