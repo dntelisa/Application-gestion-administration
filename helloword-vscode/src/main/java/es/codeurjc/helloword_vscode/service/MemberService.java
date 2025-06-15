@@ -8,9 +8,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.web.exchanges.HttpExchange.Principal;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -181,9 +184,22 @@ public class MemberService implements UserDetailsService {
 	}
 
 	/* Update user by id*/
-	public MemberDTO updateUserIdDTO(Long id, NewMemberRequestDTO dto) {
-		Member member = findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+	public MemberDTO updateUserIdDTO(Long id, NewMemberRequestDTO dto, Authentication authentication) {
+		// Find the user by ID or throw an exception if not found
+		Member member = findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+		// Retrieve the logged-in user's username and check if the user is an admin
+		String loggedUsername = authentication.getName(); 
+		boolean isAdmin = authentication.getAuthorities().stream()
+				.anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+
+		// Check if the logged-in user is authorized to update the profile
+		if (!member.getName().equalsIgnoreCase(loggedUsername) && !isAdmin) {
+			throw new SecurityException("You are not allowed to update this profile.");
+		}
+
+		// Check if the new username is different and already exists
 		if (!member.getName().equals(dto.name()) && findByName(dto.name()).isPresent()) {
 			throw new IllegalArgumentException("This username already exists");
 		}
@@ -198,6 +214,8 @@ public class MemberService implements UserDetailsService {
 		save(member);
 		return toDTO(member);
 	}
+
+
 
 
 	/* Delete user */
@@ -223,30 +241,65 @@ public class MemberService implements UserDetailsService {
 	}
 
 	public MemberDTO deleteMemberDTO(Long memberId) throws IOException {
-		// 1. Récupérer l'entité complète
+		// Retrieve the complete entity
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-		// 2. Convertir en DTO avant toute suppression pour éviter les problèmes de lazy loading
+		// Convert to DTO before deletion to avoid lazy loading issues later
 		MemberDTO memberDTO = toDTO(member);
 
-		// 3. Supprimer les rôles dans les associations
+		// Delete member types in associations
 		List<MemberType> memberTypes = memberTypeService.findByMember(member);
 		for (MemberType memberType : memberTypes) {
 			memberTypeService.delete(memberType);
 		}
 
-		// 4. Supprimer la participation aux réunions
+		// Remove participation in meetings
 		List<Minute> minutes = minuteService.findAllByParticipantsContains(member);
 		for (Minute minute : minutes) {
 			minute.getParticipants().remove(member);
 			minuteService.save(minute);
 		}
 
-		// 5. Supprimer le membre
 		memberRepository.delete(member);
 
-		// 6. Retourner le DTO supprimé (utile pour les logs ou réponse REST)
+		return memberDTO;
+	}
+
+	public MemberDTO deleteMemberDTO(Long memberId, Authentication authentication) throws IOException {
+		
+		// Retrieve the complete entity
+		Member member = memberRepository.findById(memberId)
+			.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		// Authorization check: only the user himself or an admin can delete
+		String loggedUsername = authentication.getName();
+
+		boolean isAdmin = authentication.getAuthorities().stream()
+			.anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+
+		if (!member.getName().equalsIgnoreCase(loggedUsername) && !isAdmin) {
+			throw new SecurityException("You are not allowed to delete this profile.");
+		}
+
+		// Convert to DTO before deletion to avoid lazy loading issues later
+		MemberDTO memberDTO = toDTO(member);
+
+		// Delete member types in associations
+		List<MemberType> memberTypes = memberTypeService.findByMember(member);
+		for (MemberType memberType : memberTypes) {
+			memberTypeService.delete(memberType);
+		}
+
+		// Remove participation in meetings
+		List<Minute> minutes = minuteService.findAllByParticipantsContains(member);
+		for (Minute minute : minutes) {
+			minute.getParticipants().remove(member);
+			minuteService.save(minute);
+		}
+
+		memberRepository.delete(member);
+
 		return memberDTO;
 	}
 
