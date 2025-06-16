@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.MinuteDTO;
@@ -122,7 +123,7 @@ public class MinuteService {
 		return minuteRepository.findAllByParticipantsContains(participant);
 	}
 
-	/* Methode to create a new minute */
+	/* Methode to create a new minute web controller */
 	public MinuteDTO createMinute(AssociationDTO associationDTO, NewMinuteRequestDTO dto) {
 
 		LocalDate date;
@@ -154,6 +155,63 @@ public class MinuteService {
 
 		return toDTO(minute);
 	}
+
+	/* Methode to create a new minute rest controller */
+	public MinuteDTO createMinute(AssociationDTO associationDTO, NewMinuteRequestDTO dto, Authentication authentication) {
+
+		// Parse and validate date
+		LocalDate date;
+		try {
+			date = LocalDate.parse(dto.date());
+		} catch (DateTimeParseException e) {
+			throw new IllegalArgumentException("Invalid date format.");
+		}
+
+		if (date.isAfter(LocalDate.now())) {
+			throw new IllegalArgumentException("The date cannot be in the future.");
+		}
+
+		// Convert DTO to entity
+		Association association = associationService.findById(associationDTO.id())
+        .orElseThrow(() -> new ResourceNotFoundException("Association not found"));
+
+
+		// Retrieve current user
+		String loggedUsername = authentication.getName();
+		Member currentMember = memberService.findByName(loggedUsername)
+				.orElseThrow(() -> new ResourceNotFoundException("Current user not found"));
+
+		// Verify user is part of the association
+		boolean isMemberOfAssociation = association.getMemberTypes().stream()
+				.anyMatch(mt -> mt.getMember().getId() == currentMember.getId());
+
+		// Verify user is admin
+		boolean isAdmin = authentication.getAuthorities().stream()
+              .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+
+		if (!isMemberOfAssociation && !isAdmin) {
+			throw new SecurityException("You are not a member of this association or admin.");
+		}
+
+		// Build participant list
+		List<Member> participants = dto.participantsIds().stream()
+				.map(id -> memberService.findById(id).orElse(null))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+
+		// Build and save the minute
+		Minute minute = new Minute();
+		minute.setDate(dto.date());
+		minute.setParticipants(participants);
+		minute.setContent(dto.content());
+		minute.setDuration(dto.duration());
+		minute.setAssociation(association);
+
+		minuteRepository.save(minute);
+
+		return toDTO(minute);
+	}
+
 
 	/* Method to find all the members of an association */
 	public List<MemberDTO> findMembersDTO(AssociationDTO associationDTO){

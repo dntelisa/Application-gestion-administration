@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+
 import java.util.List;
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
@@ -54,20 +56,21 @@ public class MinuteRestController {
     // POST create new minute
     @PostMapping("association/{id}")
     public ResponseEntity<MinuteDTO> createMinute(@PathVariable long id,
-                                                  @RequestBody NewMinuteRequestDTO dto) {
+                                                @RequestBody NewMinuteRequestDTO dto,
+                                                Authentication authentication) {
         try {
             AssociationDTO associationDTO = associationService.findByIdDTO(id);
-
-            MinuteDTO createdMinute = minuteService.createMinute(associationDTO, dto);
-
+            MinuteDTO createdMinute = minuteService.createMinute(associationDTO, dto, authentication);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdMinute);
-
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null); // ou une réponse JSON avec message
+            return ResponseEntity.badRequest().body(null);
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
+
 
     // PUT update minute
     @PutMapping("/{id}")
