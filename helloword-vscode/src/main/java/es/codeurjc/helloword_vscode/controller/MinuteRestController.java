@@ -2,6 +2,8 @@ package es.codeurjc.helloword_vscode.controller;
 
 import java.sql.SQLException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,13 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.Authentication;
 
-import java.util.List;
-
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.EditMinuteRequestDTO;
 import es.codeurjc.helloword_vscode.dto.MinuteDTO;
+import es.codeurjc.helloword_vscode.dto.MinuteMapper;
 import es.codeurjc.helloword_vscode.dto.NewMinuteRequestDTO;
+import es.codeurjc.helloword_vscode.repository.MinuteRepository;
 import es.codeurjc.helloword_vscode.service.AssociationService;
 import es.codeurjc.helloword_vscode.service.MinuteService;
 
@@ -34,12 +36,24 @@ public class MinuteRestController {
     @Autowired
     private AssociationService associationService;
 
+    @Autowired
+    MinuteMapper minuteMapper;
+
+    @Autowired
+    MinuteRepository minuteRepository;
+
     // GET all minutes
     @GetMapping("/")
-    public ResponseEntity<List<MinuteDTO>> getAllMinutes() {
-        List<MinuteDTO> minutes = minuteService.findAllDTOs();
-        return ResponseEntity.ok(minutes);
+    public Page<MinuteDTO> getAllMinutes(Pageable pageable) {
+        return minuteRepository.findAll(pageable)
+        .map(minuteMapper::toDTO);
     }
+    // GET all minutes
+    // @GetMapping("/")
+    // public ResponseEntity<List<MinuteDTO>> getAllMinutes() {
+    //     List<MinuteDTO> minutes = minuteService.findAllDTOs();
+    //     return ResponseEntity.ok(minutes);
+    // }
 
     // GET one minute by id
     @GetMapping("/{id}")

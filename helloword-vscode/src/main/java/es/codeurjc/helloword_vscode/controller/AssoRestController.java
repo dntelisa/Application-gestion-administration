@@ -3,9 +3,10 @@ package es.codeurjc.helloword_vscode.controller;
 import java.io.IOException;
 import java.net.URI;
 import java.sql.SQLException;
-import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,6 +24,8 @@ import static org.springframework.web.servlet.support.ServletUriComponentsBuilde
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
+import es.codeurjc.helloword_vscode.dto.AssociationMapper;
+import es.codeurjc.helloword_vscode.repository.AssociationRepository;
 import es.codeurjc.helloword_vscode.service.AssociationService;
 
 
@@ -33,11 +36,22 @@ public class AssoRestController {
     @Autowired
     private AssociationService associationService;
 
+    @Autowired
+    AssociationMapper associationMapper;
+
+    @Autowired
+    AssociationRepository associationRepository;
+
     // GET all associations
     @GetMapping("/")
-    public Collection<AssociationDTO> getAllAssociations() {
-        return associationService.findAllDTOs();
+    public Page<AssociationDTO> getAllAssociations(Pageable pageable) {
+        return associationRepository.findAll(pageable)
+        .map(associationMapper::toDTO);
     }
+    // @GetMapping("/")
+    // public Collection<AssociationDTO> getAllAssociations() {
+    //     return associationService.findAllDTOs();
+    // }
 
     // GET one association by id
     @GetMapping("/{id}")

@@ -1,6 +1,8 @@
 package es.codeurjc.helloword_vscode.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.sql.SQLException;
-import java.util.Collection;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -22,7 +23,9 @@ import es.codeurjc.helloword_vscode.dto.EditMTRequestDTO;
 
 
 import es.codeurjc.helloword_vscode.dto.MemberTypeDTO;
+import es.codeurjc.helloword_vscode.dto.MemberTypeMapper;
 import es.codeurjc.helloword_vscode.dto.NewMTRequestDTO;
+import es.codeurjc.helloword_vscode.repository.MemberTypeRepository;
 import es.codeurjc.helloword_vscode.service.MemberTypeService;
 
 @RestController
@@ -32,11 +35,23 @@ public class MemberTypeRestController {
     @Autowired
     private MemberTypeService memberTypeService;
 
+    @Autowired
+    MemberTypeMapper memberTypeMapper;
+
+    @Autowired
+    MemberTypeRepository memberTypeRepository;
+
     // GET all member types
     @GetMapping("/")
-    public Collection<MemberTypeDTO> getAllMemberTypes() {
-        return memberTypeService.findAllMTDTOs();
+    public Page<MemberTypeDTO> getAllMemberTypes(Pageable pageable) {
+        return memberTypeRepository.findAll(pageable)
+        .map(memberTypeMapper::toDTO);
     }
+    // GET all member types
+    // @GetMapping("/")
+    // public Collection<MemberTypeDTO> getAllMemberTypes() {
+    //     return memberTypeService.findAllMTDTOs();
+    // }
 
     // GET one member type by id
     @GetMapping("/{id}")
