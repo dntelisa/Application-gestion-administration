@@ -63,11 +63,15 @@ public class MemberWebController {
 
     /*  View all members */
     @GetMapping("/members")
-    public String showMembers(Model model) {
-        // Fetch all users and add them to the model
-        model.addAttribute("isMember", memberService.findAllDTOs());
+    public String memberPage() {
         return "members";
     }
+    // @GetMapping("/members")
+    // public String showMembers(Model model) {
+    //     // Fetch all users and add them to the model
+    //     model.addAttribute("isMember", memberService.findAllDTOs());
+    //     return "members";
+    // }
 
     /* User profile page */ 
     @GetMapping("/profile")

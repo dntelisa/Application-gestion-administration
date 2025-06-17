@@ -1,6 +1,8 @@
 package es.codeurjc.helloword_vscode.controller;
 
 import java.net.URI;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,8 @@ import es.codeurjc.helloword_vscode.dto.MemberDTO;
 import es.codeurjc.helloword_vscode.dto.MemberDetailsDTO;
 import es.codeurjc.helloword_vscode.dto.MemberMapper;
 import es.codeurjc.helloword_vscode.dto.NewMemberRequestDTO;
+import es.codeurjc.helloword_vscode.dto.PagedResponseDTO;
+import es.codeurjc.helloword_vscode.model.Member;
 import es.codeurjc.helloword_vscode.repository.MemberRepository;
 import es.codeurjc.helloword_vscode.service.MemberService;
 
@@ -44,10 +48,10 @@ public class MemberRestController {
 
     // GET all members
     @GetMapping("/")
-    public Page<MemberDTO> getAllMembers(Pageable pageable) {
-        return memberRepository.findAll(pageable)
-        .map(memberMapper::toDTO);
+    public PagedResponseDTO<MemberDTO> getAllMembers(Pageable pageable) {
+        return memberService.getPagedMembers(pageable);
     }
+
     // @GetMapping("/")
     // public Collection<MemberDTO> getAllMembers() {
     //     return memberService.findAllDTOs();

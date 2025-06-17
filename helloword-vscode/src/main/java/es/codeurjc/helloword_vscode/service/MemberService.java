@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.web.exchanges.HttpExchange.Principal;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 import es.codeurjc.helloword_vscode.model.MemberType;
 import es.codeurjc.helloword_vscode.model.Minute;
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
+import es.codeurjc.helloword_vscode.dto.AssociationBasicDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationMemberTypeDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationMemberTypeMapper;
 import es.codeurjc.helloword_vscode.dto.MemberDTO;
@@ -30,6 +33,7 @@ import es.codeurjc.helloword_vscode.dto.MemberDetailsDTO;
 import es.codeurjc.helloword_vscode.dto.MemberMapper;
 import es.codeurjc.helloword_vscode.dto.MinuteLightDTO;
 import es.codeurjc.helloword_vscode.dto.NewMemberRequestDTO;
+import es.codeurjc.helloword_vscode.dto.PagedResponseDTO;
 import es.codeurjc.helloword_vscode.model.Association;
 import es.codeurjc.helloword_vscode.model.Member;
 import es.codeurjc.helloword_vscode.repository.MemberRepository;
@@ -319,6 +323,24 @@ public class MemberService implements UserDetailsService {
 
 	public List<AssociationMemberTypeDTO> getAssociationRoles(Member member) {
 		return associationMemberTypeMapper.toDTOs(member.getMemberTypes());
+	}
+
+	public PagedResponseDTO<MemberDTO> getPagedMembers(Pageable pageable) {
+		Page<Member> page = memberRepository.findAll(pageable);
+
+		List<MemberDTO> dtoList = page.getContent().stream()
+			.map(memberMapper::toDTO)
+			.collect(Collectors.toList());
+
+		return new PagedResponseDTO<>(
+			dtoList,
+			page.getNumber(),
+			page.getSize(),
+			page.getTotalElements(),
+			page.getTotalPages(),
+			page.isLast(),
+			page.isFirst()
+		);
 	}
 
 

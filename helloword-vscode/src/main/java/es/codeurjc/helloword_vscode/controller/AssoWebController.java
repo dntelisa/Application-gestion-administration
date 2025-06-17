@@ -91,8 +91,6 @@ public class AssoWebController {
     /* Home page: Displays associations */
     @GetMapping("/")
     public String getPosts(Model model, HttpServletRequest request) {
-        // Fetch all associations and add them to the model
-        model.addAttribute("associations", associationService.findAllDTOs());
         return "index";
     }
 

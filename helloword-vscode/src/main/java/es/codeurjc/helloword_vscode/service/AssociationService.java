@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationBasicDTO;
@@ -32,6 +35,7 @@ import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationMapper;
 import es.codeurjc.helloword_vscode.dto.MemberDTO;
 import es.codeurjc.helloword_vscode.dto.MemberTypeDTO;
+import es.codeurjc.helloword_vscode.dto.PagedResponseDTO;
 import es.codeurjc.helloword_vscode.model.Association;
 import es.codeurjc.helloword_vscode.model.MemberType;
 import es.codeurjc.helloword_vscode.model.Member;
@@ -297,6 +301,25 @@ public class AssociationService {
 		association.setImageFile(null);
 		association.setImage(false);
 		associationRepository.save(association);
+	}
+
+	
+	public PagedResponseDTO<AssociationBasicDTO> getPagedAssociations(Pageable pageable) {
+		Page<Association> page = associationRepository.findAll(pageable);
+
+		List<AssociationBasicDTO> dtoList = page.getContent().stream()
+			.map(associationBasicMapper::toDTO)
+			.collect(Collectors.toList());
+
+		return new PagedResponseDTO<>(
+			dtoList,
+			page.getNumber(),
+			page.getSize(),
+			page.getTotalElements(),
+			page.getTotalPages(),
+			page.isLast(),
+			page.isFirst()
+		);
 	}
 
 	/* Convert entity to DTO */

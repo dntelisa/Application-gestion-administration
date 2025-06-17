@@ -137,7 +137,8 @@ public class SecurityConfiguration {
                     "/user/**", 
                     "/profile/create", 
                     "/login/create",
-                    "/association/*/image"
+                    "/association/*/image",
+                    "/api/**"
                 ).permitAll()
                 
                  // Pages accessible to users with role "USER"

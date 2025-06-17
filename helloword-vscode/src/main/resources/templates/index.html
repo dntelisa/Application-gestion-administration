@@ -2,21 +2,63 @@
 <html>
 <head>
     <title>Welcome Page</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    {{> header}}
-    <h2>Associations</h2>
-    <ul>
-        {{#associations}}
-            <li><a href="/association/{{id}}">{{name}} {{id}}</a></li>
-        {{/associations}}
-        {{#assofind}}
-            <li><a href="/association/{{id}}">{{name}} {{id}}</li>
-        {{/assofind}}
-    </ul>
-    {{#isAdmin}}
-        <a href="/createasso">Create association</a>
-    {{/isAdmin}}
-    {{>footer}}
+{{> header}}
+
+<h2>Associations</h2>
+
+<ul id="associationList"></ul>
+
+<div id="pagination">
+    <button id="prev">Previous</button>
+    <span id="pageNumber">1</span>
+    <button id="next">Next</button>
+</div>
+
+{{#isAdmin}}
+    <a href="/createasso">Create association</a>
+{{/isAdmin}}
+
+{{> footer}}
+
+<script>
+let currentPage = 0;
+let pageSize = 5;
+
+function loadAssociations(page) {
+    $.get(`/api/associations/?page=${page}&size=${pageSize}`, function(data) {
+        const list = $("#associationList");
+        list.empty();
+
+        data.content.forEach(asso => {
+            const item = `<li><a href="/association/${asso.id}">${asso.name} ${asso.id}</a></li>`;
+            list.append(item);
+        });
+
+        $("#pageNumber").text(page + 1);
+        $("#prev").prop("disabled", data.first);
+        $("#next").prop("disabled", data.last);
+    });
+}
+
+$("#prev").click(function() {
+    if (currentPage > 0) {
+        currentPage--;
+        loadAssociations(currentPage);
+    }
+});
+
+$("#next").click(function() {
+    currentPage++;
+    loadAssociations(currentPage);
+});
+
+$(document).ready(function() {
+    loadAssociations(currentPage);
+});
+</script>
+
 </body>
 </html>
