@@ -3,12 +3,9 @@ package es.codeurjc.helloword_vscode.controller;
 import java.io.IOException;
 import java.net.URI;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -27,12 +24,8 @@ import static org.springframework.web.servlet.support.ServletUriComponentsBuilde
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationBasicDTO;
-import es.codeurjc.helloword_vscode.dto.AssociationBasicMapper;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
-import es.codeurjc.helloword_vscode.dto.AssociationMapper;
 import es.codeurjc.helloword_vscode.dto.PagedResponseDTO;
-import es.codeurjc.helloword_vscode.model.Association;
-import es.codeurjc.helloword_vscode.repository.AssociationRepository;
 import es.codeurjc.helloword_vscode.service.AssociationService;
 
 
@@ -42,15 +35,6 @@ public class AssoRestController {
 
     @Autowired
     private AssociationService associationService;
-
-    @Autowired
-    AssociationMapper associationMapper;
-
-    @Autowired
-    AssociationRepository associationRepository;
-
-    @Autowired
-    AssociationBasicMapper associationBasicMapper;
 
     // GET all associations
     @GetMapping("/")

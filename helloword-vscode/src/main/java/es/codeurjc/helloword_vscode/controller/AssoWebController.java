@@ -5,9 +5,9 @@ import java.security.Principal;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,26 +63,13 @@ public class AssoWebController {
         // Determine if the user is authenticated and not anonymous
         boolean isAuthenticated = auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName());
         model.addAttribute("isAuthenticated", isAuthenticated);
-        
-        // If authenticated, add the username to the model
-        if (isAuthenticated && auth.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) auth.getPrincipal();
-            model.addAttribute("username", userDetails.getUsername());
-        }
 
         // Attributes are created based on the user
         Principal principal = request.getUserPrincipal();
         if(principal != null) {
-		
-			model.addAttribute("logged", true);		
-			model.addAttribute("userName", principal.getName());
-
             // Check if the user has the ADMIN role and add this information to the model
-			model.addAttribute("isAdmin", request.isUserInRole("ADMIN"));
-			
-		} else {
-			model.addAttribute("logged", false);
-		}
+			model.addAttribute("isAdmin", request.isUserInRole("ADMIN"));		
+		} 
         
     }
 
@@ -98,7 +84,6 @@ public class AssoWebController {
     @GetMapping("/association/{id}")
     public String associationId(@PathVariable long id, Model model, Principal principal, HttpServletRequest request) {
         String username = (principal != null) ? principal.getName() : null;
-        boolean isAdmin = request.isUserInRole("ADMIN");
 
         try {
             AssociationDTO association = associationService.getDetailedAssociationDTO(id);
@@ -106,7 +91,6 @@ public class AssoWebController {
             model.addAttribute("association", association);
             model.addAttribute("minutes", association.minutes());
             model.addAttribute("hasImage", association.image());
-            model.addAttribute("isAdmin", isAdmin);
 
             List<Map<String, Object>> memberTypeData = association.memberTypes().stream().map(mt -> {
                 Map<String, Object> data = new HashMap<>();
