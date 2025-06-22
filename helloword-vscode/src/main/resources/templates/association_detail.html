@@ -57,7 +57,9 @@
                     <input type="hidden" name="_csrf" value="{{token}}"/>
                     <button type="submit">Delete</button>
                 </form>
-                {{#isMember}}<button onclick="location.href='/minute/{{id}}/asso/{{association.id}}/edit'">Edit</button>{{/isMember}}
+                {{#isMember}}
+                    <button onclick="location.href='/minute/{{id}}/asso/{{association.id}}/edit'">Edit</button>
+                {{/isMember}}
                 {{/isAdmin}}
             </li>
         {{/minutes}}
