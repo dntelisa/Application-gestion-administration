@@ -24,11 +24,8 @@ import static org.springframework.web.servlet.support.ServletUriComponentsBuilde
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationBasicDTO;
-import es.codeurjc.helloword_vscode.dto.AssociationBasicMapper;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
-import es.codeurjc.helloword_vscode.dto.AssociationMapper;
 import es.codeurjc.helloword_vscode.dto.PagedResponseDTO;
-import es.codeurjc.helloword_vscode.repository.AssociationRepository;
 import es.codeurjc.helloword_vscode.service.AssociationService;
 
 
@@ -38,15 +35,6 @@ public class AssoRestController {
 
     @Autowired
     private AssociationService associationService;
-
-    @Autowired
-    AssociationMapper associationMapper;
-
-    @Autowired
-    AssociationRepository associationRepository;
-
-    @Autowired
-    AssociationBasicMapper associationBasicMapper;
 
     // GET all associations
     @GetMapping("/")
