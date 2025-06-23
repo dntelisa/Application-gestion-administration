@@ -55,12 +55,6 @@ public class MinuteService {
 	@Autowired
 	private MemberMapper memberMapper;
 
-	/* Find all minutes */
-	public List<MinuteDTO> findAllDTOs() {
-		List<Minute> minutes = minuteRepository.findAll();
-		return minuteMapper.toDTOs(minutes);
-	}
-
 
 	/* Save minute */
 	public void save (Minute minute) throws IOException{
@@ -141,7 +135,7 @@ public class MinuteService {
 		Association association = toDomain(associationDTO);
 
 		List<Member> participants = dto.participantsIds().stream()
-			.map(id -> memberService.findById(id).orElse(null))
+			.map(id -> memberService.findById(id))
 			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
 
@@ -178,8 +172,7 @@ public class MinuteService {
 
 		// Retrieve current user
 		String loggedUsername = authentication.getName();
-		Member currentMember = memberService.findByName(loggedUsername)
-				.orElseThrow(() -> new ResourceNotFoundException("Current user not found"));
+		Member currentMember = memberService.findByName(loggedUsername);
 
 		// Verify user is part of the association
 		boolean isMemberOfAssociation = association.getMemberTypes().stream()
@@ -195,7 +188,7 @@ public class MinuteService {
 
 		// Build participant list
 		List<Member> participants = dto.participantsIds().stream()
-				.map(id -> memberService.findById(id).orElse(null))
+				.map(id -> memberService.findById(id))
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 
@@ -254,7 +247,7 @@ public class MinuteService {
 
 		// Retrieving of the members
 		List<Member> participants = dto.participantsIds().stream()
-			.map(id -> memberService.findById(id).orElse(null))
+			.map(id -> memberService.findById(id))
 			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
 
@@ -288,7 +281,7 @@ public class MinuteService {
 
 		// Fetch participants
 		List<Member> participants = dto.participantsIds().stream()
-			.map(id -> memberService.findById(id).orElse(null))
+			.map(id -> memberService.findById(id))
 			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
 

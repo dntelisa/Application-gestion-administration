@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,8 +98,8 @@ public class MemberService implements UserDetailsService {
 
 
 	/* Find user by their name */
-	public Optional<Member> findByName(String name) {
-		return memberRepository.findByName(name);
+	public Member findByName(String name) {
+		return memberRepository.findByName(name).orElseThrow(() -> new ResourceNotFoundException("User not found: " + name));
 	}
 
 	public MemberDTO findByNameDTO(String name) {
@@ -131,8 +130,8 @@ public class MemberService implements UserDetailsService {
 
 
 	/* Find user by ID */
-	public Optional<Member> findById(long id) {
-		return memberRepository.findById(id);
+	public Member findById(long id) {
+		return memberRepository.findById(id) .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
 	}
 
 	/* Find user by ID */
@@ -158,20 +157,18 @@ public class MemberService implements UserDetailsService {
 		);
 	}
 
-
-	
-	/* Find all associations */
-	public Collection<MemberDTO> findAllDTOs() {
-    	return toDTOs(memberRepository.findAll());
-	}
-
-
 	/* Update user */
 	public void updateUserDTO(String currentUsername, NewMemberRequestDTO dto) {
-		Member member = findByName(currentUsername).orElseThrow();
+		Member member = findByName(currentUsername);
 
-		if (!member.getName().equals(dto.name()) && findByName(dto.name()).isPresent()) {
-			throw new IllegalArgumentException("This username already exists");
+		if (!member.getName().equals(dto.name())) {
+			try {
+				findByName(dto.name());
+				// Si on arrive ici = username existe déjà
+				throw new IllegalArgumentException("This username already exists");
+			} catch (ResourceNotFoundException e) {
+				// Si exception = c'est OK = username n'existe pas encore
+			}
 		}
 
 		member.setName(dto.name());
@@ -184,25 +181,26 @@ public class MemberService implements UserDetailsService {
 		save(member);
 	}
 
+
 	/* Update user by id*/
 	public MemberDTO updateUserIdDTO(Long id, NewMemberRequestDTO dto, Authentication authentication) {
-		// Find the user by ID or throw an exception if not found
-		Member member = findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+		Member member = findById(id);
 
-		// Retrieve the logged-in user's username and check if the user is an admin
-		String loggedUsername = authentication.getName(); 
+		String loggedUsername = authentication.getName();
 		boolean isAdmin = authentication.getAuthorities().stream()
 				.anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
 
-		// Check if the logged-in user is authorized to update the profile
 		if (!member.getName().equalsIgnoreCase(loggedUsername) && !isAdmin) {
 			throw new SecurityException("You are not allowed to update this profile.");
 		}
 
-		// Check if the new username is different and already exists
-		if (!member.getName().equals(dto.name()) && findByName(dto.name()).isPresent()) {
-			throw new IllegalArgumentException("This username already exists");
+		if (!member.getName().equals(dto.name())) {
+			try {
+				findByName(dto.name());
+				throw new IllegalArgumentException("This username already exists");
+			} catch (ResourceNotFoundException e) {
+				// OK: username n’existe pas encore
+			}
 		}
 
 		member.setName(dto.name());
@@ -215,8 +213,6 @@ public class MemberService implements UserDetailsService {
 		save(member);
 		return toDTO(member);
 	}
-
-
 
 
 	/* Delete user */
@@ -315,12 +311,6 @@ public class MemberService implements UserDetailsService {
 			.collect(Collectors.toList());
 	}
 
-
-
-	public List<AssociationMemberTypeDTO> getAssociationRoles(Member member) {
-		return associationMemberTypeMapper.toDTOs(member.getMemberTypes());
-	}
-
 	public PagedResponseDTO<MemberDTO> getPagedMembers(Pageable pageable) {
 		Page<Member> page = memberRepository.findAll(pageable);
 
@@ -337,12 +327,6 @@ public class MemberService implements UserDetailsService {
 			page.isLast(),
 			page.isFirst()
 		);
-	}
-
-
-	/* Find all the user's minutes */
-	public List<Minute> getUserMinutes(Member member) {
-		return member.getMinutes();
 	}
 
 	/* Convert entity to DTO */

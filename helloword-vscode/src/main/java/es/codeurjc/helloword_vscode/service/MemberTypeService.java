@@ -72,8 +72,7 @@ public class MemberTypeService {
   public MemberTypeDTO createMemberType(NewMTRequestDTO mtRequestDTO, Authentication authentication) {
 
     // Retrieve member
-    Member member = memberService.findById(mtRequestDTO.memberId())
-            .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
+    Member member = memberService.findById(mtRequestDTO.memberId());
 
     // Retrieve association
     Association association = associationService.findById(mtRequestDTO.associationId());
@@ -193,14 +192,6 @@ public class MemberTypeService {
       return toDTOs(memberTypeRepository.findByMember(member));
   }
 
-  /* Find the president of an association */
-  public Optional<Member> getPresident(Association association) {
-    return association.getMemberTypes().stream()
-        .filter(mt -> "president".equalsIgnoreCase(mt.getName()))
-        .map(MemberType::getMember)
-        .findFirst();
-  }
-
   public MemberDTO getPresidentDTO(AssociationDTO associationDTO) {
     return associationDTO.memberTypes().stream()
         .filter(mt -> "president".equalsIgnoreCase(mt.name()))
@@ -312,12 +303,6 @@ public class MemberTypeService {
       return toDTO(target);
   }
 
-
-  /* Find all member types */
-  public Collection<MemberTypeDTO> findAllMTDTOs() {
-    return toDTOs(memberTypeRepository.findAll());
-  }
-
     /* Find all member types with pagination */
     public Page<MemberTypeDTO> getAllMemberTypes(Pageable pageable) {
         return memberTypeRepository.findAll(pageable)
@@ -364,13 +349,6 @@ public class MemberTypeService {
             delete(memberTypeMapper.toDomain(mt));
         }
     }
-
-    public void deleteAllMemberTypesForMember(Member member) {
-        List<MemberType> memberTypes = findByMember(member);
-        memberTypes.forEach(this::delete);
-    }
-
-
 
 	/* Convert entity to DTO */
 	private MemberTypeDTO toDTO(MemberType memberType) {

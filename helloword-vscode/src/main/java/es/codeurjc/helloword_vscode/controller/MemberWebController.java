@@ -149,9 +149,8 @@ public class MemberWebController {
     /* Page with the form of user edition */
     @GetMapping("/profile/edit")
     public String editProfile(Model model, Principal principal) {
-        MemberDTO userDTO = memberService.findByName(principal.getName())
-                                        .map(member -> new MemberDTO(member.getId(), member.getName(), member.getSurname()))
-                                        .orElseThrow();
+        Member member = memberService.findByName(principal.getName());
+        MemberDTO userDTO = new MemberDTO(member.getId(), member.getName(), member.getSurname());
         model.addAttribute("user", userDTO);
         return "edit_profile";
     }
@@ -187,8 +186,7 @@ public class MemberWebController {
         String username = principal.getName();
 
         try {
-            Member member = memberService.findByName(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            Member member = memberService.findByName(username);
 
             // Delete user
             memberService.delete(member);
