@@ -26,10 +26,7 @@ import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationMapper;
 import es.codeurjc.helloword_vscode.dto.PagedResponseDTO;
 import es.codeurjc.helloword_vscode.model.Association;
-import es.codeurjc.helloword_vscode.model.Member;
 import es.codeurjc.helloword_vscode.repository.AssociationRepository;
-import es.codeurjc.helloword_vscode.repository.MemberRepository;
-import es.codeurjc.helloword_vscode.repository.MinuteRepository;
 
 /* 
  * This service class provides methods to perform various operations on
@@ -45,12 +42,6 @@ public class AssociationService {
 	private AssociationRepository associationRepository;
 
 	@Autowired
-	private MinuteRepository minuteRepository;
-
-	@Autowired
-	private MemberRepository memberRepository;	
-
-	@Autowired
 	private AssociationMapper associationMapper;
 
 	@Autowired
@@ -63,15 +54,13 @@ public class AssociationService {
 		}
 		Association association = toDomain(associationDTO); // convert to domain
 		associationRepository.save(association);
-		if (association.getMinutes() != null) {
-			association.getMinutes().replaceAll(minute -> minuteRepository.findById(minute.getId()).orElseThrow());
+		if (associationDTO.minutes() != null && !associationDTO.minutes().isEmpty()) {
+			throw new IllegalArgumentException("Cannot create an association with existing minutes.");
 		}
-		if (association.getMemberTypes() != null) {
-			association.getMemberTypes().forEach(mt -> {
-				Member fullMember = memberRepository.findById(mt.getMember().getId()).orElseThrow();
-				mt.setMember(fullMember);
-			});
+		if (associationDTO.memberTypes() != null && !associationDTO.memberTypes().isEmpty()) {
+			throw new IllegalArgumentException("Cannot create an association with existing members.");
 		}
+
 		return toDTO(association); // convert to DTO
 	}
 
@@ -86,6 +75,7 @@ public class AssociationService {
 		associationRepository.save(association);
 	}
 
+	/* Creates or replaces an association based on the provided ID and DTO */
 	public AssociationDTO createOrReplaceAssociation(Long id, AssociationDTO associationDTO) throws SQLException {
 		
 		AssociationDTO association;
@@ -104,33 +94,21 @@ public class AssociationService {
 		.orElseThrow(() -> new ResourceNotFoundException("Association not found with id: " + id));
 	}
 
-	/* Find association by ID */
+	/* Find association by ID and returns it as a DTO */
 	public AssociationDTO findByIdDTO(long id) {
     	return toDTO(associationRepository.findById(id).orElseThrow());
 	}
 
-	/* Find association by ID */
+	/* Find association by ID returns it as a basic DTO */
 	public AssociationBasicDTO findByIdDTOBasic(long id) {
 		return toDTOAssociationBasic(associationRepository.findById(id).orElseThrow());
 	}
-
-
-	/* Find all associations */
-	public Collection<AssociationDTO> findAllDTOs() {
-    	return toDTOs(associationRepository.findAll());
-	}
-
 
 	/* Delete association by ID */
 	public AssociationDTO deleteAssociation(long id) {
 
 		Association association = associationRepository.findById(id).orElseThrow();
-
-		//As associations are related to minutes and member types, 
-		// it is needed to load the association minutes and member types 
-		//before deleting it to avoid LazyInitializationException
 		AssociationDTO associationDTO = toDTO(association);
-
 		associationRepository.deleteById(id);
 
 		return associationDTO;
@@ -167,7 +145,7 @@ public class AssociationService {
 		return toDTO(updatedAssociation);
 	}
 
-	/* Add an image in association */
+	/* Add an image to an association */
 	public void createAssoImage(long id, URI location, InputStream inputStream, long size) {
 
 		Association association = associationRepository.findById(id)
@@ -254,7 +232,7 @@ public class AssociationService {
 		associationRepository.save(association);
 	}
 
-	
+	/* Retrieves a paged response of associations */
 	public PagedResponseDTO<AssociationBasicDTO> getPagedAssociations(Pageable pageable) {
 		Page<Association> page = associationRepository.findAll(pageable);
 

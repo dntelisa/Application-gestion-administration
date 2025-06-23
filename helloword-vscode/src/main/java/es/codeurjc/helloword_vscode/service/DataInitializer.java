@@ -1,32 +1,28 @@
 package es.codeurjc.helloword_vscode.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Service;
-
-import es.codeurjc.helloword_vscode.model.Association;
-import es.codeurjc.helloword_vscode.model.MemberType;
-import es.codeurjc.helloword_vscode.model.Minute;
-import es.codeurjc.helloword_vscode.model.Member;
-import es.codeurjc.helloword_vscode.repository.AssociationRepository;
-import es.codeurjc.helloword_vscode.repository.MinuteRepository;
-import es.codeurjc.helloword_vscode.repository.MemberTypeRepository;
-import es.codeurjc.helloword_vscode.repository.MemberRepository;
-
-import jakarta.annotation.PostConstruct;
-
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.sql.rowset.serial.SerialBlob;
 
-import java.io.IOException;
-import java.sql.SQLException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 
-
-import org.springframework.security.crypto.password.PasswordEncoder;
+import es.codeurjc.helloword_vscode.model.Association;
+import es.codeurjc.helloword_vscode.model.Member;
+import es.codeurjc.helloword_vscode.model.MemberType;
+import es.codeurjc.helloword_vscode.model.Minute;
+import es.codeurjc.helloword_vscode.repository.AssociationRepository;
+import es.codeurjc.helloword_vscode.repository.MemberRepository;
+import es.codeurjc.helloword_vscode.repository.MemberTypeRepository;
+import es.codeurjc.helloword_vscode.repository.MinuteRepository;
+import jakarta.annotation.PostConstruct;
 
 /**
  * This service class is used to initialize the database with predefined data, including users,
@@ -84,14 +80,14 @@ public class DataInitializer {
         Minute minute2 = new Minute("2024-11-03", Arrays.asList(member1, member2), "Discussion on government measures", 30.0, association1);
         minuteRepository.save(minute2);
 
-        // Création des membres
+        // Creation of members
         List<Member> members = new ArrayList<>();
         for (int i = 1; i <= 30; i++) {
             members.add(new Member("Name" + i, "Surname" + i, passwordEncoder.encode("pass" + i), "USER"));
         }
         MemberRepository.saveAll(members);
 
-        // Associations à créer avec image fixe
+        // Associations to create with still image
         List<String> names = List.of("Love Earth", "Give Smile", "Construct Avenir", "Culture Club", "Nature Warrior", "Book Lovers");
         List<String> imageFiles = List.of("image1.jpg", "image2.jpg", "image3.jpg", "image4.jpg", "image5.jpg", "image6.jpg");
 
@@ -100,7 +96,7 @@ public class DataInitializer {
         for (int i = 0; i < names.size(); i++) {
             Association asso = new Association(names.get(i));
 
-            // Image en ordre
+            // Image in order
             ClassPathResource imgFile = new ClassPathResource("static/images/asso/" + imageFiles.get(i));
             byte[] bytes = StreamUtils.copyToByteArray(imgFile.getInputStream());
             asso.setImageFile(new SerialBlob(bytes));
@@ -110,7 +106,7 @@ public class DataInitializer {
             associations.add(asso);
         }
 
-        // Répartition des rôles dans chaque association
+        // Distribution of roles in each association
         List<MemberType> roles = new ArrayList<>();
         int memberIndex = 0;
 

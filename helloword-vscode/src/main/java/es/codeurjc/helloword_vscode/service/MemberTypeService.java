@@ -365,6 +365,12 @@ public class MemberTypeService {
         }
     }
 
+    public void deleteAllMemberTypesForMember(Member member) {
+        List<MemberType> memberTypes = findByMember(member);
+        memberTypes.forEach(this::delete);
+    }
+
+
 
 	/* Convert entity to DTO */
 	private MemberTypeDTO toDTO(MemberType memberType) {
