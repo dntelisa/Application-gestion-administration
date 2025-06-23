@@ -1,18 +1,16 @@
 package es.codeurjc.helloword_vscode.model;
 
+import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
-import java.sql.Blob;
-
-import jakarta.persistence.CascadeType;
 
 @Entity
 public class Association {
@@ -41,13 +39,22 @@ public class Association {
     public Association() {}
 
 
-    /* Constructor with name and image file*/
+    /**
+     * Parameterized constructor to initialize the association with a name and an image file.
+     *
+     * @param name The name of the association.
+     * @param imgAsso The image file path or identifier for the association.
+    */
     public Association(String name, String imgAsso) {
         this.name = name;
         this.memberTypes = new ArrayList<>();
     }
 
-    /* Constructor only with name */
+    /**
+     * Parameterized constructor to initialize the association with a name.
+     *
+     * @param name The name of the association.
+     */
     public Association(String name) {
         this.name = name;
         this.memberTypes = new ArrayList<>();
@@ -111,26 +118,5 @@ public class Association {
     public void setMinutes(List<Minute> minutes) {
         this.minutes = minutes;
     }
-
-    // DO NOT DO THIS
-    public List<Member> getMembers() {
-        // Retrieve all users associated with this association
-        return memberTypes.stream()
-                     .map(MemberType::getMember)
-                     .collect(Collectors.toList());
-    }
-
-    // DO NOT DO THIS
-    // public void setMembers(List<Member> members) {
-    //     // Assure that all users has a role in their association
-    //     this.memberTypes = members.stream()
-    //                         .map(member -> {
-    //                             MemberType memberType = new MemberType();
-    //                             memberType.setMember(member);
-    //                             memberType.setAssociation(this);
-    //                             return memberType;
-    //                         })
-    //                         .collect(Collectors.toList());
-    // }
 }
 

@@ -28,7 +28,11 @@ import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.PagedResponseDTO;
 import es.codeurjc.helloword_vscode.service.AssociationService;
 
-
+/**
+ * REST controller for managing associations.
+ * Provides endpoints to create, read, update, and delete associations,
+ * as well as manage their images.
+ */
 @RestController
 @RequestMapping("/api/associations")
 public class AssoRestController {

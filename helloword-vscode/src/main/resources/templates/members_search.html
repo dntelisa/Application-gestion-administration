@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Members Page</title>
+</head>
+<body>
+    {{> header}}
+    <h2>Members</h2>
+    <ul>
+        {{#isMember}}
+            <a href="/user/{{id}}"><li>{{name}} {{surname}} {{id}}</li></a>  
+        {{/isMember}}
+    </ul>
+    {{> footer}}
+</body>
+</html>

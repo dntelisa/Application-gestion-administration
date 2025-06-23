@@ -3,44 +3,38 @@ package es.codeurjc.helloword_vscode.controller;
 import java.net.URI;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.springframework.data.domain.Pageable;
-
-import es.codeurjc.helloword_vscode.ResourceNotFoundException;
-import es.codeurjc.helloword_vscode.dto.MemberDTO;
-import es.codeurjc.helloword_vscode.dto.MemberDetailsDTO;
-import es.codeurjc.helloword_vscode.dto.MemberMapper;
-import es.codeurjc.helloword_vscode.dto.NewMemberRequestDTO;
-import es.codeurjc.helloword_vscode.dto.PagedResponseDTO;
-import es.codeurjc.helloword_vscode.repository.MemberRepository;
-import es.codeurjc.helloword_vscode.service.MemberService;
-
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import org.springframework.security.core.Authentication;
+import es.codeurjc.helloword_vscode.ResourceNotFoundException;
+import es.codeurjc.helloword_vscode.dto.MemberDTO;
+import es.codeurjc.helloword_vscode.dto.MemberDetailsDTO;
+import es.codeurjc.helloword_vscode.dto.NewMemberRequestDTO;
+import es.codeurjc.helloword_vscode.dto.PagedResponseDTO;
+import es.codeurjc.helloword_vscode.service.MemberService;
 
-
+/*
+ * REST controller for managing members.
+ * Provides endpoints to create, read, update, and delete members,
+ * as well as retrieving paginated lists of members.
+ */
 @RestController
 @RequestMapping("/api/members")
 public class MemberRestController {
     
     @Autowired
     MemberService memberService;
-
-    @Autowired
-    MemberMapper memberMapper;
-
-    @Autowired
-    MemberRepository memberRepository;
 
     // GET all members
     @GetMapping("/")

@@ -1,21 +1,5 @@
 package es.codeurjc.helloword_vscode.service;
 
-import org.hibernate.engine.jdbc.BlobProxy;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Service;
-
-import es.codeurjc.helloword_vscode.repository.AssociationRepository;
-import es.codeurjc.helloword_vscode.repository.MemberRepository;
-import es.codeurjc.helloword_vscode.repository.MinuteRepository;
-
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -28,6 +12,17 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.hibernate.engine.jdbc.BlobProxy;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationBasicDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationBasicMapper;
@@ -37,8 +32,11 @@ import es.codeurjc.helloword_vscode.dto.MemberDTO;
 import es.codeurjc.helloword_vscode.dto.MemberTypeDTO;
 import es.codeurjc.helloword_vscode.dto.PagedResponseDTO;
 import es.codeurjc.helloword_vscode.model.Association;
-import es.codeurjc.helloword_vscode.model.MemberType;
 import es.codeurjc.helloword_vscode.model.Member;
+import es.codeurjc.helloword_vscode.model.MemberType;
+import es.codeurjc.helloword_vscode.repository.AssociationRepository;
+import es.codeurjc.helloword_vscode.repository.MemberRepository;
+import es.codeurjc.helloword_vscode.repository.MinuteRepository;
 
 /* 
  * This service class provides methods to perform various operations on
@@ -82,8 +80,11 @@ public class AssociationService {
 		if (association.getMinutes() != null) {
 			association.getMinutes().replaceAll(minute -> minuteRepository.findById(minute.getId()).orElseThrow());
 		}
-		if (association.getMembers() != null) {
-			association.getMembers().replaceAll(member -> memberRepository.findById(member.getId()).orElseThrow());
+		if (association.getMemberTypes() != null) {
+			association.getMemberTypes().forEach(mt -> {
+				Member fullMember = memberRepository.findById(mt.getMember().getId()).orElseThrow();
+				mt.setMember(fullMember);
+			});
 		}
 		return toDTO(association); // convert to DTO
 	}
@@ -118,10 +119,7 @@ public class AssociationService {
 
 	/* Find association by ID */
 	public AssociationDTO findByIdDTO(long id) {
-    	Association asso = associationRepository.findById(id)
-        	.orElseThrow(() -> new ResourceNotFoundException("Association not found"));
-
-    	return associationMapper.toDTO(asso);
+    	return toDTO(associationRepository.findById(id).orElseThrow());
 	}
 
 	/* Find association by ID */
@@ -188,9 +186,11 @@ public class AssociationService {
 	}
 
 	/* Load details of an association */
-	public AssociationDTO getDetailedAssociationDTO(Long associationId) {
-		return findByIdDTO(associationId);
+	public AssociationDTO getDetailedAssociationDTO(long id) {
+    return toDTO(associationRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Association with id " + id + " not found")));
 	}
+
 
 	/* Update the data of an association */
 	public AssociationDTO replaceAssociation(long id, AssociationDTO updatedAssociationDTO) throws SQLException {

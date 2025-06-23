@@ -16,7 +16,6 @@ public interface AssociationMapper {
     @Mapping(target = "image", ignore = true)
     @Mapping(target = "memberTypes", ignore = true)
     @Mapping(target = "minutes", ignore = true)
-    @Mapping(target = "members", ignore = true)
     Association toDomain(AssociationDTO dto);
 
     AssociationDTO toDTO(Association association);

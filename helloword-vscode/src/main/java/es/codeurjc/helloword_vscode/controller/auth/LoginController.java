@@ -14,6 +14,9 @@ import es.codeurjc.helloword_vscode.security.jwt.LoginRequest;
 import es.codeurjc.helloword_vscode.security.jwt.UserLoginService;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * Controller for handling user login, token refresh, and logout operations.
+ */
 @RestController
 @RequestMapping("/api/auth")
 public class LoginController {

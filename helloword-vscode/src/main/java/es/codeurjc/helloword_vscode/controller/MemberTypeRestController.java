@@ -1,33 +1,32 @@
 package es.codeurjc.helloword_vscode.controller;
 
+import java.sql.SQLException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.sql.SQLException;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.EditMTRequestDTO;
-
-
 import es.codeurjc.helloword_vscode.dto.MemberTypeDTO;
-import es.codeurjc.helloword_vscode.dto.MemberTypeMapper;
 import es.codeurjc.helloword_vscode.dto.NewMTRequestDTO;
-import es.codeurjc.helloword_vscode.repository.MemberTypeRepository;
 import es.codeurjc.helloword_vscode.service.MemberTypeService;
 
+/*
+ * REST controller for managing member types.
+ * Provides endpoints to create, read, update, and delete member types.
+ */
 @RestController
 @RequestMapping("/api/memberTypes")
 public class MemberTypeRestController {
@@ -35,17 +34,10 @@ public class MemberTypeRestController {
     @Autowired
     private MemberTypeService memberTypeService;
 
-    @Autowired
-    MemberTypeMapper memberTypeMapper;
-
-    @Autowired
-    MemberTypeRepository memberTypeRepository;
-
     // GET all member types
     @GetMapping("/")
     public Page<MemberTypeDTO> getAllMemberTypes(Pageable pageable) {
-        return memberTypeRepository.findAll(pageable)
-        .map(memberTypeMapper::toDTO);
+        return memberTypeService.getAllMemberTypes(pageable);
     }
     // GET all member types
     // @GetMapping("/")

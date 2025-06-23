@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -37,7 +36,11 @@ import es.codeurjc.helloword_vscode.service.MemberTypeService;
 import jakarta.servlet.http.HttpServletRequest;
 
 
-
+/**
+ * Controller for handling web requests related to associations.
+ * Provides endpoints for viewing, creating, editing, and deleting associations,
+ * as well as joining and leaving associations.
+ */
 @Controller
 public class AssoWebController {
 
@@ -80,11 +83,14 @@ public class AssoWebController {
         return "index";
     }
 
-
+    /* Association page: display details of an association */
     @GetMapping("/association/{id}")
     public String associationId(@PathVariable long id, Model model, Principal principal, HttpServletRequest request) {
+
+        // Retrieve the current user from the request
         String username = (principal != null) ? principal.getName() : null;
 
+        // Retrieve the association details
         try {
             AssociationDTO association = associationService.getDetailedAssociationDTO(id);
 
@@ -92,6 +98,7 @@ public class AssoWebController {
             model.addAttribute("minutes", association.minutes());
             model.addAttribute("hasImage", association.image());
 
+            // List of possible member types
             List<Map<String, Object>> memberTypeData = association.memberTypes().stream().map(mt -> {
                 Map<String, Object> data = new HashMap<>();
                 data.put("id", mt.id());
@@ -110,7 +117,9 @@ public class AssoWebController {
             boolean isMember = username != null && association.memberTypes().stream()
                 .anyMatch(mt -> mt.member().name().equals(username));
 
-            boolean isPresident = false;
+            boolean isPresident;
+
+            // Check if the current user is the president of the association
             try {
                 MemberDTO president = memberTypeService.getPresidentDTO(association);
                 isPresident = president != null && president.name().equals(username);
@@ -162,7 +171,6 @@ public class AssoWebController {
 
     /*  Delete association (only for admins) */
     @PostMapping("/association/{id}/delete")
-    @PreAuthorize("hasRole('ADMIN')")
 	public String deleteAssociation(@PathVariable long id, Authentication auth) {
         associationService.findByIdDTO(id); // throws if not found
         associationService.deleteAssociation(id); // Delete the association by ID
@@ -179,7 +187,6 @@ public class AssoWebController {
 
     /* Create a new association (only for admins) */ 
     @PostMapping("/association/create")
-    @PreAuthorize("hasRole('ADMIN')")
     public String createAssociation(Model model, NewAssoRequestDTO newAssoRequestDTO) throws IOException, SQLException {
 
         AssociationDTO createdAsso = createOrReplaceAssociation(null, newAssoRequestDTO, null);
@@ -198,7 +205,6 @@ public class AssoWebController {
 
     /* Page to edit association (only for admins) */ 
 	@GetMapping("/editasso/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
 	public String editAsso(Model model, @PathVariable long id) {
         AssociationDTO association = associationService.findByIdDTO(id); // Retrieve the association by ID
         model.addAttribute("association", association);  // Add the association to the model

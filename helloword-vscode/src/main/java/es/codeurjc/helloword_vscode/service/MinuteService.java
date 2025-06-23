@@ -10,18 +10,20 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
-import es.codeurjc.helloword_vscode.dto.MinuteDTO;
-import es.codeurjc.helloword_vscode.dto.MemberDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
-import es.codeurjc.helloword_vscode.dto.MinuteMapper;
-import es.codeurjc.helloword_vscode.dto.NewMinuteRequestDTO;
-import es.codeurjc.helloword_vscode.dto.MemberMapper;
 import es.codeurjc.helloword_vscode.dto.AssociationMapper;
 import es.codeurjc.helloword_vscode.dto.EditMinuteRequestDTO;
+import es.codeurjc.helloword_vscode.dto.MemberDTO;
+import es.codeurjc.helloword_vscode.dto.MemberMapper;
+import es.codeurjc.helloword_vscode.dto.MinuteDTO;
+import es.codeurjc.helloword_vscode.dto.MinuteMapper;
+import es.codeurjc.helloword_vscode.dto.NewMinuteRequestDTO;
 import es.codeurjc.helloword_vscode.model.Association;
 import es.codeurjc.helloword_vscode.model.Member;
 import es.codeurjc.helloword_vscode.model.Minute;
@@ -301,6 +303,12 @@ public class MinuteService {
 		// Save and return DTO
 		return toDTO(minuteRepository.save(minute));
 	}
+
+	/* Find all minutes with pagination */
+    public Page<MinuteDTO> getAllMinutes(Pageable pageable) {
+        return minuteRepository.findAll(pageable)
+                .map(minuteMapper::toDTO);
+    }
 
 	/* Convert entity to DTO */
 	public MinuteDTO toDTO(Minute minute) {

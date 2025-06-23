@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome Page</title>
+</head>
+<body>
+    {{> header}}
+    <h2>Associations</h2>
+    <ul>
+        {{#assofind}}
+            <li><a href="/association/{{id}}">{{name}} {{id}}</li>
+        {{/assofind}}
+    </ul>
+
+    {{>footer}}
+</body>
+</html>

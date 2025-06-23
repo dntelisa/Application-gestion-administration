@@ -21,6 +21,11 @@ import es.codeurjc.helloword_vscode.service.AssociationService;
 import es.codeurjc.helloword_vscode.service.MemberService;
 import es.codeurjc.helloword_vscode.service.MinuteService;
 
+/**
+ * Controller for managing minutes in the web application.
+ * Provides endpoints for creating, editing, and deleting minutes,
+ * as well as displaying the minute creation form.
+ */
 @Controller
 public class MinuteWebController {
 
@@ -57,8 +62,7 @@ public class MinuteWebController {
 	public String createMinuteDTO(Model model, @PathVariable long id) {
         // Retrieve the association by ID
         AssociationDTO associationDTO = associationService.findByIdDTO(id);
-        // Optional<Association> association = associationService.findById(id);
-        // Add association and members to the model
+
         // Add association and members to the model
         model.addAttribute("association", associationDTO);
         model.addAttribute("members", minuteService.findMembersDTO(associationDTO));
@@ -106,7 +110,6 @@ public class MinuteWebController {
             return "redirect:/minute/" + dto.minuteId() + "/asso/" + dto.assoId() + "/edit";
         }
 
-        // Délégation complète au service
         minuteService.updateDTO(dto);
 
         return "redirect:/association/" + dto.assoId();

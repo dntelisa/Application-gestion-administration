@@ -1,10 +1,11 @@
 package es.codeurjc.helloword_vscode.controller;
 
+import java.io.IOException;
+import java.security.Principal;
+import java.util.List;
+import java.util.NoSuchElementException;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,26 +14,27 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import es.codeurjc.helloword_vscode.service.MemberService;
-import es.codeurjc.helloword_vscode.service.AssociationService;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.MemberDTO;
 import es.codeurjc.helloword_vscode.dto.MemberDetailsDTO;
 import es.codeurjc.helloword_vscode.dto.NewMemberRequestDTO;
 import es.codeurjc.helloword_vscode.model.Member;
+import es.codeurjc.helloword_vscode.service.AssociationService;
+import es.codeurjc.helloword_vscode.service.MemberService;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
 
-import java.io.IOException;
-import java.security.Principal;
-import java.util.List;
-
+/**
+ * Controller for managing members in the web application.
+ * Provides endpoints for viewing, creating, updating, and deleting members,
+ * as well as searching for members and associations.
+ */
 @Controller
 public class MemberWebController {
 
     // Service for database interaction 
-
     @Autowired
     private AssociationService associationService;
 
@@ -43,21 +45,10 @@ public class MemberWebController {
     /* Adds authentication attributes to all templates */ 
     @ModelAttribute
     public void addAttributes(Model model, HttpServletRequest request) {
-        // Retrieve the current authentication information        
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAuthenticated = auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName());
-        
-        // Determine if the user is authenticated and not anonymous
-        model.addAttribute("isAuthenticated", isAuthenticated);
-        
+
         // Determine if the user is admin
         model.addAttribute("isAdmin", request.isUserInRole("ADMIN"));
 
-        // If authenticated, add the username to the model
-        if (isAuthenticated && auth.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) auth.getPrincipal();
-            model.addAttribute("username", userDetails.getUsername());
-        }
     }
     
 
@@ -106,25 +97,33 @@ public class MemberWebController {
 
 
     /* Research of a specific association or user by ID */
-    @GetMapping("/search")
+    @PostMapping("/search")
     public String searchUserOrAssociation(@RequestParam(name = "searchId", required = false) Long id,
-                                          @RequestParam(name = "searchType", required = false) String searchType,
-                                          Model model) {
+                                        @RequestParam(name = "searchType", required = false) String searchType,
+                                        Model model) {
         if (id != null && "user".equals(searchType)) {
-            // Search for a user by ID and add to the model
-            memberService.findById(id).ifPresent(user ->
-                model.addAttribute("isMember", List.of(user))
-            );
-            return "members";
+            try {
+                MemberDTO user = memberService.findByIdDTO(id); 
+                model.addAttribute("isMember", List.of(user));
+                return "members_search";
+            } catch (NoSuchElementException | EntityNotFoundException e) {
+                return "user_not_found";
+            }
         }
-    
+
         if (id != null && "association".equals(searchType)) {
-            AssociationDTO associationDTO = associationService.findByIdDTO(id);
-            model.addAttribute("assofind", associationDTO);
-            return "index";
+            try {
+                AssociationDTO associationDTO = associationService.findByIdDTO(id);
+                model.addAttribute("assofind", associationDTO);
+                return "asso_search";
+            } catch (NoSuchElementException | EntityNotFoundException e) {
+                return "asso_not_found";
+            }
         }
+
         return "index";
     }
+
     
 
     /* Creation of an user */
@@ -169,7 +168,7 @@ public class MemberWebController {
             return "post_update_profile";
         } catch (IllegalArgumentException e) {
             model.addAttribute("error", e.getMessage());
-            model.addAttribute("user", dto);  // Pour réafficher le formulaire avec les données
+            model.addAttribute("user", dto);  // To redisplay the form with the data
             return "edit_profile";
         }
     }
@@ -177,7 +176,6 @@ public class MemberWebController {
 
     /*  Page to confirm deletion of user */
     @GetMapping("/profile/delete")
-    @PreAuthorize("isAuthenticated()")
     public String deleteConfirmation() {
         return "confirm_delete";
     }
@@ -185,7 +183,6 @@ public class MemberWebController {
     
     /* Deletion of our own account */ 
     @PostMapping("/profile/delete/confirm")
-    @PreAuthorize("isAuthenticated()")
     public String deleteOwnAccount(Principal principal, HttpServletRequest request) throws IOException {
         String username = principal.getName();
 
@@ -200,7 +197,7 @@ public class MemberWebController {
             try {
                 request.logout();
             } catch (ServletException e) {
-                e.printStackTrace();
+                throw new IOException("Logout failed", e);
             }
 
             return "redirect:/";

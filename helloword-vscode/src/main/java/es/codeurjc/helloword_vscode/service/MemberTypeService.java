@@ -1,14 +1,18 @@
 package es.codeurjc.helloword_vscode.service;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.core.Authentication;
 
-import es.codeurjc.helloword_vscode.repository.MemberTypeRepository;
-
-import es.codeurjc.helloword_vscode.model.MemberType;
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.EditMTRequestDTO;
@@ -20,11 +24,8 @@ import es.codeurjc.helloword_vscode.dto.MemberTypeMapper;
 import es.codeurjc.helloword_vscode.dto.NewMTRequestDTO;
 import es.codeurjc.helloword_vscode.model.Association;
 import es.codeurjc.helloword_vscode.model.Member;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import es.codeurjc.helloword_vscode.model.MemberType;
+import es.codeurjc.helloword_vscode.repository.MemberTypeRepository;
 
 
 /* 
@@ -318,6 +319,13 @@ public class MemberTypeService {
   public Collection<MemberTypeDTO> findAllMTDTOs() {
     return toDTOs(memberTypeRepository.findAll());
   }
+
+    /* Find all member types with pagination */
+    public Page<MemberTypeDTO> getAllMemberTypes(Pageable pageable) {
+        return memberTypeRepository.findAll(pageable)
+                .map(memberTypeMapper::toDTO);
+    }
+
 
   /* Find one member type by id */
   public MemberTypeDTO findByIdMTDTO(long id) {
