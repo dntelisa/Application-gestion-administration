@@ -146,7 +146,7 @@ public class AssoWebController {
     public String joinAssociation(@PathVariable Long id, Principal principal) {
         if (principal != null) {
             String username = principal.getName();
-            associationService.addUserToAssociation(id, username);
+            memberTypeService.addUserToAssociation(id, username);
         }
         return "redirect:/association/" + id;
     }
@@ -158,7 +158,7 @@ public class AssoWebController {
         if (principal != null) {
             try {
                 MemberDTO userDTO = memberService.findByNameDTO(principal.getName());
-                associationService.deleteUserFromAssociationDTO(id, userDTO.id());
+                memberTypeService.deleteUserFromAssociation(id, userDTO.id());
             } catch (IllegalStateException e) {
                 redirectAttributes.addFlashAttribute("leaveError", e.getMessage());
                 return "redirect:/association/" + id;

@@ -20,8 +20,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import es.codeurjc.helloword_vscode.model.MemberType;
-import es.codeurjc.helloword_vscode.model.Minute;
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationMemberTypeDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationMemberTypeMapper;
@@ -33,6 +31,8 @@ import es.codeurjc.helloword_vscode.dto.NewMemberRequestDTO;
 import es.codeurjc.helloword_vscode.dto.PagedResponseDTO;
 import es.codeurjc.helloword_vscode.model.Association;
 import es.codeurjc.helloword_vscode.model.Member;
+import es.codeurjc.helloword_vscode.model.MemberType;
+import es.codeurjc.helloword_vscode.model.Minute;
 import es.codeurjc.helloword_vscode.repository.MemberRepository;
 
 /*
@@ -306,8 +306,7 @@ public class MemberService implements UserDetailsService {
 
 	
 	public List<MemberDTO> findMembersByAssociationId(Long associationId) {
-		Association association = associationService.findById(associationId)
-			.orElseThrow(() -> new ResourceNotFoundException("Association not found with id: " + associationId));
+		Association association = associationService.findById(associationId);
 
 		return association.getMemberTypes().stream()
 			.map(MemberType::getMember)
@@ -349,6 +348,10 @@ public class MemberService implements UserDetailsService {
 	/* Convert entity to DTO */
 	private MemberDTO toDTO(Member member) {
 		return memberMapper.toDTO(member);
+	}
+
+	public MemberDTO toDTO(MemberDetailsDTO details) {
+		return new MemberDTO(details.id(), details.name(), details.surname());
 	}
 
 	/* Converted an association set to DTOs */

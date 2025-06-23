@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
+import es.codeurjc.helloword_vscode.dto.AssociationBasicDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.EditMTRequestDTO;
 import es.codeurjc.helloword_vscode.dto.MemberDTO;
@@ -44,7 +45,6 @@ public class MemberTypeService {
   private MemberService memberService;
 
   @Autowired
-  @Lazy
   private AssociationService associationService;
 
   @Autowired
@@ -76,8 +76,7 @@ public class MemberTypeService {
             .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
 
     // Retrieve association
-    Association association = associationService.findById(mtRequestDTO.associationId())
-            .orElseThrow(() -> new ResourceNotFoundException("Association not found"));
+    Association association = associationService.findById(mtRequestDTO.associationId());
 
     // Check if the association already has any member types
     boolean associationIsEmpty = association.getMemberTypes().isEmpty();
@@ -221,7 +220,6 @@ public class MemberTypeService {
 
   public Collection<MemberTypeDTO> findByAssociationIdDTO(Long associationId) {
     return associationService.findById(associationId)
-        .orElseThrow()
         .getMemberTypes()
         .stream()
         .map(memberTypeMapper::toDTO)
@@ -331,6 +329,42 @@ public class MemberTypeService {
   public MemberTypeDTO findByIdMTDTO(long id) {
     return toDTO(memberTypeRepository.findById(id).orElseThrow());
   }
+
+  public void addUserToAssociation(Long associationId, String username) {
+
+        AssociationBasicDTO associationDTO = associationService.findByIdDTOBasic(associationId);
+        MemberDTO memberDTO = memberService.findByNameDTO(username);
+
+        List<MemberDTO> currentMembers = memberService.findMembersByAssociationId(associationId);
+
+        boolean alreadyMember = currentMembers.stream()
+                .anyMatch(member -> member.id().equals(memberDTO.id()));
+
+        if (!alreadyMember) {
+            String role = currentMembers.isEmpty() ? "president" : "member";
+            MemberTypeDTO newMemberType = new MemberTypeDTO(null, role, memberDTO, associationDTO);
+            createMemberType(newMemberType);
+        }
+    }
+
+    public void deleteUserFromAssociation(Long associationId, Long userId) {
+
+        MemberDTO memberDTO = memberService.findByIdDTO(userId);
+
+        Collection<MemberTypeDTO> memberTypes = findByMemberDTO(memberDTO);
+
+        List<MemberTypeDTO> typesToDelete = memberTypes.stream()
+                .filter(mt -> mt.association().id().equals(associationId))
+                .toList();
+
+        for (MemberTypeDTO mt : typesToDelete) {
+            if ("president".equalsIgnoreCase(mt.name())) {
+                throw new IllegalStateException("You must choose a new president before leaving the association.");
+            }
+            delete(memberTypeMapper.toDomain(mt));
+        }
+    }
+
 
 	/* Convert entity to DTO */
 	private MemberTypeDTO toDTO(MemberType memberType) {

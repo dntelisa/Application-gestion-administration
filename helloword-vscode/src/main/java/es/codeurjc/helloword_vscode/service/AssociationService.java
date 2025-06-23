@@ -8,19 +8,15 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.hibernate.engine.jdbc.BlobProxy;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
@@ -28,12 +24,9 @@ import es.codeurjc.helloword_vscode.dto.AssociationBasicDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationBasicMapper;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationMapper;
-import es.codeurjc.helloword_vscode.dto.MemberDTO;
-import es.codeurjc.helloword_vscode.dto.MemberTypeDTO;
 import es.codeurjc.helloword_vscode.dto.PagedResponseDTO;
 import es.codeurjc.helloword_vscode.model.Association;
 import es.codeurjc.helloword_vscode.model.Member;
-import es.codeurjc.helloword_vscode.model.MemberType;
 import es.codeurjc.helloword_vscode.repository.AssociationRepository;
 import es.codeurjc.helloword_vscode.repository.MemberRepository;
 import es.codeurjc.helloword_vscode.repository.MinuteRepository;
@@ -56,13 +49,6 @@ public class AssociationService {
 
 	@Autowired
 	private MemberRepository memberRepository;	
-
-    @Autowired
-	@Lazy
-    private MemberService memberService;
-
-    @Autowired
-    private MemberTypeService memberTypeService;
 
 	@Autowired
 	private AssociationMapper associationMapper;
@@ -113,8 +99,9 @@ public class AssociationService {
 
 
 	/* Find association by ID */
-	public Optional<Association> findById(long id) {
-		return associationRepository.findById(id);
+	public Association findById(long id) {
+		return associationRepository.findById(id)
+		.orElseThrow(() -> new ResourceNotFoundException("Association not found with id: " + id));
 	}
 
 	/* Find association by ID */
@@ -147,42 +134,6 @@ public class AssociationService {
 		associationRepository.deleteById(id);
 
 		return associationDTO;
-	}
-
-	/* Add user to an association */
-	public void addUserToAssociation(Long associationId, String userId) {
-		AssociationBasicDTO associationDTO = findByIdDTOBasic(associationId);
-		MemberDTO memberDTO = memberService.findByNameDTO(userId);
-		List<MemberDTO> currentMembers = memberService.findMembersByAssociationId(associationId);
-		// Verify if the user isn't already in the association
-		boolean alreadyMember = currentMembers.stream()
-        .anyMatch(member -> member.id().equals(memberDTO.id()));
-
-		// If the user is the first one to join an association he will become president else he will be member
-		if (!alreadyMember) {
-        	String role = currentMembers.isEmpty() ? "president" : "member";
-        	MemberTypeDTO newMemberType = new MemberTypeDTO(null, role, memberDTO, associationDTO);
-        	memberTypeService.createMemberType(newMemberType);
-    	}
-	}
-
-	@Transactional
-	public void deleteUserFromAssociationDTO(Long associationId, Long userId) {
-
-		Member member = memberService.findById(userId)
-			.orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-		// On accède aux MemberType via l'entité, sinon le DTO n'a pas la relation
-		List<MemberType> memberTypes = member.getMemberTypes().stream()
-			.filter(mt -> Objects.equals(mt.getAssociation().getId(), associationId))
-			.toList();
-
-		for (MemberType mt : memberTypes) {
-			if ("president".equalsIgnoreCase(mt.getName())) {
-				throw new IllegalStateException("You must choose a new president before leaving the association");
-			}
-			memberTypeService.delete(mt); // méthode qui accepte une entité
-		}
 	}
 
 	/* Load details of an association */

@@ -80,8 +80,7 @@ public class MinuteService {
 		MinuteDTO minuteDTO = toDTO(minute);
 
 		// Retrieve the association by ID
-		Association association = associationService.findById(assoId)
-		.orElseThrow(() -> new ResourceNotFoundException("Association not found"));
+		Association association = associationService.findById(assoId);
 
         // Remove the minute from the association's list of minutes
 		association.getMinutes().remove(minute);
@@ -174,8 +173,7 @@ public class MinuteService {
 		}
 
 		// Convert DTO to entity
-		Association association = associationService.findById(associationDTO.id())
-        .orElseThrow(() -> new ResourceNotFoundException("Association not found"));
+		Association association = associationService.findById(associationDTO.id());
 
 
 		// Retrieve current user
