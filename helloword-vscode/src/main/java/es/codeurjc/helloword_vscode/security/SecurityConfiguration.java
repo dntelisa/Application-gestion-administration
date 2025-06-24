@@ -32,28 +32,27 @@ public class SecurityConfiguration {
 
     @Autowired
     private CustomAccessDeniedHandler accessDeniedHandler;
-    
+
     /* Bean for password encoding */
-	@Bean
-	public PasswordEncoder passwordEncoder() {
+    @Bean
+    PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 
     @Bean
-	public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+    AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
 		return authConfig.getAuthenticationManager();
 	}
 
     @Bean
-    public UserDetailsService userDetailsService(MemberService memberService) {
+    UserDetailsService userDetailsService(MemberService memberService) {
         return username -> memberService.loadUserByUsername(username);
     }
 
 
-
     /* Bean for authentication provider */
-	@Bean
-    public DaoAuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+    @Bean
+    DaoAuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder);
@@ -63,8 +62,8 @@ public class SecurityConfiguration {
 
     /* Bean for security filter chain */
     @Bean
-	@Order(1)
-    public SecurityFilterChain apiFilterChain(HttpSecurity http, DaoAuthenticationProvider authProvider, JwtRequestFilter jwtRequestFilter) throws Exception {
+    @Order(1)
+    SecurityFilterChain apiFilterChain(HttpSecurity http, DaoAuthenticationProvider authProvider, JwtRequestFilter jwtRequestFilter) throws Exception {
 		
 		http.authenticationProvider(authProvider);
 		
@@ -115,10 +114,10 @@ public class SecurityConfiguration {
 		return http.build();
 	}
 
-	@Bean
-    @Order(2)
     // Configure method with http object for security
-    public SecurityFilterChain webFilterChain(HttpSecurity http, DaoAuthenticationProvider authProvider) throws Exception {
+    @Bean
+    @Order(2)
+    SecurityFilterChain webFilterChain(HttpSecurity http, DaoAuthenticationProvider authProvider) throws Exception {
         // Set the authentication provider
         http.authenticationProvider(authProvider);
     

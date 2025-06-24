@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -82,6 +81,7 @@ public class MemberService implements UserDetailsService {
 			// If no member is found, continue with member creation
 		}
 
+		// By default, a new user is necessarily user
 		Member member = new Member(
 			memberDTO.name(),
 			memberDTO.surname(),
@@ -101,6 +101,7 @@ public class MemberService implements UserDetailsService {
 		return memberRepository.findByName(name).orElseThrow(() -> new ResourceNotFoundException("User not found: " + name));
 	}
 
+	/* Find user by their name and return DTO */
 	public MemberDTO findByNameDTO(String name) {
 		return toDTO(
 			memberRepository.findByName(name)
@@ -133,7 +134,7 @@ public class MemberService implements UserDetailsService {
 		return memberRepository.findById(id) .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
 	}
 
-	/* Find user by ID */
+	/* Find user by ID and return DTO*/
 	public MemberDTO findByIdDTO(long id) {
 		return toDTO(memberRepository.findById(id).orElseThrow());
 	}
@@ -181,7 +182,7 @@ public class MemberService implements UserDetailsService {
 	}
 
 
-	/* Update user by id*/
+	/* Update user by id and return DTO */
 	public MemberDTO updateUserIdDTO(Long id, NewMemberRequestDTO dto, Authentication authentication) {
 		Member member = findById(id);
 
@@ -236,6 +237,8 @@ public class MemberService implements UserDetailsService {
 		memberRepository.delete(user);
 	}
 
+
+	/* Delete user by id and return DTO */
 	public MemberDTO deleteMemberDTO(Long memberId) throws IOException {
 		// Retrieve the complete entity
 		Member member = memberRepository.findById(memberId)
@@ -262,6 +265,7 @@ public class MemberService implements UserDetailsService {
 		return memberDTO;
 	}
 
+	/* Method that permit to an user to delete his own account and return DTO */
 	public MemberDTO deleteMemberDTO(Long memberId, Authentication authentication) throws IOException {
 		
 		// Retrieve the complete entity
@@ -299,7 +303,7 @@ public class MemberService implements UserDetailsService {
 		return memberDTO;
 	}
 
-	
+	/* Find all members of an association */
 	public List<MemberDTO> findMembersByAssociationId(Long associationId) {
 		Association association = associationService.findById(associationId);
 
@@ -310,6 +314,7 @@ public class MemberService implements UserDetailsService {
 			.collect(Collectors.toList());
 	}
 
+	/* Get all members with pagination */
 	public PagedResponseDTO<MemberDTO> getPagedMembers(Pageable pageable) {
 		Page<Member> page = memberRepository.findAll(pageable);
 
@@ -333,11 +338,12 @@ public class MemberService implements UserDetailsService {
 		return memberMapper.toDTO(member);
 	}
 
+	/* Converted a member to DTO */
 	public MemberDTO toDTO(MemberDetailsDTO details) {
 		return new MemberDTO(details.id(), details.name(), details.surname());
 	}
 
-	/* Converted an association set to DTOs */
+	/* Converted a member set to DTOs */
 	private Collection<MemberDTO> toDTOs(Collection<Member> members) {
 		return memberMapper.toDTOs(members);
 	}

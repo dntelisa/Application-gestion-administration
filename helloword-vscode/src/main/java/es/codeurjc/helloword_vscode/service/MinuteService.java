@@ -121,6 +121,7 @@ public class MinuteService {
 	/* Methode to create a new minute web controller */
 	public MinuteDTO createMinute(AssociationDTO associationDTO, NewMinuteRequestDTO dto) {
 
+		// Parse and validate date
 		LocalDate date;
 		try {
 			date = LocalDate.parse(dto.date());
@@ -169,7 +170,6 @@ public class MinuteService {
 		// Convert DTO to entity
 		Association association = associationService.findById(associationDTO.id());
 
-
 		// Retrieve current user
 		String loggedUsername = authentication.getName();
 		Member currentMember = memberService.findByName(loggedUsername);
@@ -212,15 +212,16 @@ public class MinuteService {
 		}
 
 
-		/* Find participants of a meeting */
-		public List<MemberDTO> findParticipantsDTO(MinuteDTO minuteDTO){
-			return minuteDTO.participants();
-		}
+	/* Find participants of a meeting */
+	public List<MemberDTO> findParticipantsDTO(MinuteDTO minuteDTO){
+		return minuteDTO.participants();
+	}
 
-		public List<MemberDTO> findNoParticipantsDTO(AssociationDTO associationDTO, MinuteDTO minuteDTO){
-			List<MemberDTO> members = memberService.findMembersByAssociationId(associationDTO.id());
-			Set<Long> participantIds = minuteDTO.participants().stream().map(MemberDTO::id).collect(Collectors.toSet());
-			return members.stream().filter(m -> !participantIds.contains(m.id())).collect(Collectors.toList());
+	 /* Method to find members of an association that are not participants of a minute */
+	public List<MemberDTO> findNoParticipantsDTO(AssociationDTO associationDTO, MinuteDTO minuteDTO){
+		List<MemberDTO> members = memberService.findMembersByAssociationId(associationDTO.id());
+		Set<Long> participantIds = minuteDTO.participants().stream().map(MemberDTO::id).collect(Collectors.toSet());
+		return members.stream().filter(m -> !participantIds.contains(m.id())).collect(Collectors.toList());
 	}
 
 	/* Method to update minute for web controller */

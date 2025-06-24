@@ -19,8 +19,19 @@ public interface AssociationMemberTypeMapper {
 
     List<AssociationMemberTypeDTO> toDTOs(Collection<MemberType> memberTypes);
 
-    @Mapping(source = "association", target = "association")
-    @Mapping(source = "member", target = "member")
+    @Mapping(source = "association", target = "association", ignore = false)
+    @Mapping(source = "member", target = "member", ignore = false)
+    @Mapping(target = "association.imageFile", ignore = true)
+    @Mapping(target = "association.image", ignore = true)
+    @Mapping(target = "association.imagePath", ignore = true)
+    @Mapping(target = "association.memberTypes", ignore = true)
+    @Mapping(target = "association.minutes", ignore = true)
+    @Mapping(target = "member.pwd", ignore = true)
+    @Mapping(target = "member.roles", ignore = true)
+    @Mapping(target = "member.memberTypes", ignore = true)
+    @Mapping(target = "member.associations", ignore = true)
+    @Mapping(target = "member.associationsWithRoles", ignore = true)
+    @Mapping(target = "member.minutes", ignore = true)
     MemberType toDomain(MemberTypeDTO dto);
 }
 

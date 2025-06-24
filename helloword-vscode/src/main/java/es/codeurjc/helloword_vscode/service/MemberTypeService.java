@@ -6,12 +6,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationBasicDTO;
@@ -23,9 +21,7 @@ import es.codeurjc.helloword_vscode.dto.MemberMapper;
 import es.codeurjc.helloword_vscode.dto.MemberTypeDTO;
 import es.codeurjc.helloword_vscode.dto.MemberTypeLightDTO;
 import es.codeurjc.helloword_vscode.dto.MemberTypeMapper;
-import es.codeurjc.helloword_vscode.dto.NewMTRequestDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationBasicMapper;
-import es.codeurjc.helloword_vscode.model.Association;
 import es.codeurjc.helloword_vscode.model.Member;
 import es.codeurjc.helloword_vscode.model.MemberType;
 import es.codeurjc.helloword_vscode.repository.MemberTypeRepository;
@@ -76,50 +72,62 @@ public class MemberTypeService {
     /* Create member type in rest controller */
     public MemberTypeDTO createMemberType(MemberDTO memberDTO, AssociationDTO associationDTO, String requestedRole, Authentication authentication) {
 
-    boolean associationIsEmpty = associationDTO.memberTypes().isEmpty();
+        // Check if the association currently has no members
+        boolean associationIsEmpty = associationDTO.memberTypes().isEmpty();
 
-    boolean alreadyInAssociation = associationDTO.memberTypes().stream()
-            .anyMatch(mt -> mt.member().id().equals(memberDTO.id()));
+        boolean alreadyInAssociation = associationDTO.memberTypes().stream()
+                .anyMatch(mt -> mt.member().id().equals(memberDTO.id()));
 
-    if (alreadyInAssociation) {
-        throw new IllegalArgumentException("Member is already part of this association.");
-    }
-
-    String loggedUsername = authentication.getName();
-
-    boolean isAdmin = authentication.getAuthorities().stream()
-            .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
-
-    String roleToAssign = requestedRole;
-
-    if (isAdmin) {
-        if (associationIsEmpty && !"president".equalsIgnoreCase(requestedRole)) {
-            throw new IllegalArgumentException("First member must be president.");
+        // Check if the member is already part of the association
+        if (alreadyInAssociation) {
+            throw new IllegalArgumentException("Member is already part of this association.");
         }
 
-        if ("president".equalsIgnoreCase(requestedRole)) {
-            demotePreviousPresident(associationDTO, memberDTO);
+        // Retrieve the logged-in user's username
+        String loggedUsername = authentication.getName();
+
+        // Check if the logged-in user is an admin
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+
+        // Determine the role to assign
+        String roleToAssign = requestedRole;
+
+        if (isAdmin) {
+            // If the association is empty and the requested role is not president, throw an exception
+            if (associationIsEmpty && !"president".equalsIgnoreCase(requestedRole)) {
+                throw new IllegalArgumentException("First member must be president.");
+            }
+
+            // If the requested role is president, demote the previous president
+            if ("president".equalsIgnoreCase(requestedRole)) {
+                demotePreviousPresident(associationDTO, memberDTO);
+            }
+
+        } else {
+
+            // If the user is not an admin, they can only add themselves
+            if (!memberDTO.name().equalsIgnoreCase(loggedUsername)) {
+                throw new SecurityException("You can only add yourself.");
+            }
+
+            // If the association is empty, assign the role of president; otherwise, assign the role of member
+            roleToAssign = associationIsEmpty ? "president" : "member";
         }
 
-    } else {
-        if (!memberDTO.name().equalsIgnoreCase(loggedUsername)) {
-            throw new SecurityException("You can only add yourself.");
-        }
+        // Create a new MemberTypeDTO with the determined role
+        MemberTypeDTO newMT = new MemberTypeDTO(
+            null,
+            roleToAssign,
+            memberDTO,
+            new AssociationBasicDTO(associationDTO.id(), associationDTO.name())
+        );
 
-        roleToAssign = associationIsEmpty ? "president" : "member";
-    }
-
-    MemberTypeDTO newMT = new MemberTypeDTO(
-        null,
-        roleToAssign,
-        memberDTO,
-        new AssociationBasicDTO(associationDTO.id(), associationDTO.name())
-    );
-
+        // Save and return the new member type
         return createMemberType(newMT);
     }
 
-
+    /* If a new president is promoved, old one is demoted */
     private void demotePreviousPresident(AssociationDTO associationDTO, MemberDTO newPresident) {
         for (MemberTypeLightDTO mt : associationDTO.memberTypes()) {
             if ("president".equalsIgnoreCase(mt.name())
@@ -141,6 +149,7 @@ public class MemberTypeService {
     memberTypeRepository.delete(memberType);
     }
 
+    /* Delete member type in rest controller */
     public MemberTypeDTO deleteMemberType(long id, Authentication authentication) {
         // Retrieve the full MemberType entity
         MemberType memberType = memberTypeRepository.findById(id)
@@ -175,11 +184,13 @@ public class MemberTypeService {
     return memberTypeRepository.findByMember(member);
     }
 
+    /* Find all member type from user DTO and return a collection of member DTO*/
     public Collection<MemberTypeDTO> findByMemberDTO(MemberDTO memberDTO) {
         Member member = memberMapper.toDomain(memberDTO);
         return toDTOs(memberTypeRepository.findByMember(member));
     }
 
+    /* Get president of an association */
     public MemberDTO getPresidentDTO(AssociationDTO associationDTO) {
     return associationDTO.memberTypes().stream()
         .filter(mt -> "president".equalsIgnoreCase(mt.name()))
@@ -193,10 +204,12 @@ public class MemberTypeService {
         return memberTypeRepository.findById(id);
     }
 
+    /* Find MemberType by id and return DTO */
     public MemberTypeDTO findByIdDTO(long id) {
         return toDTO(memberTypeRepository.findById(id).orElseThrow());
     }
 
+    /* Find all member type of an association */
     public Collection<MemberTypeDTO> findByAssociationIdDTO(Long associationId) {
     return associationService.findById(associationId)
         .getMemberTypes()
@@ -205,15 +218,18 @@ public class MemberTypeService {
         .collect(Collectors.toList());
     }
 
-    @Transactional
+    /* Change member role in web controller */
     public void changeMemberRole(AssociationDTO associationDTO, MemberDTO requesterDTO, Long memberTypeId, String newRole) {
 
+        // Retrieve the target MemberType to be updated
         MemberTypeDTO targetMemberTypeDTO = findByIdDTO(memberTypeId);
 
+        // Check if the member type belongs to the specified association
         if (!targetMemberTypeDTO.association().id().equals(associationDTO.id())) {
             throw new IllegalArgumentException("Mismatched association and memberType");
         }
 
+        // Check if the requester is the president of the association
         boolean requesterIsPresident = findByMemberDTO(requesterDTO).stream()
             .anyMatch(mt -> mt.association().id().equals(associationDTO.id())
                         && "president".equalsIgnoreCase(mt.name()));
@@ -222,11 +238,13 @@ public class MemberTypeService {
             throw new SecurityException("Only the president can change roles.");
         }
 
+        // Check if the requester is trying to change their own role as president without promoting someone else first
         if (requesterDTO.id().equals(targetMemberTypeDTO.member().id())
             && "president".equalsIgnoreCase(targetMemberTypeDTO.name())) {
             throw new SecurityException("If you want to change your role, promote someone else first.");
         }
 
+        // If the new role is president, demote the current president to a member
         if ("president".equalsIgnoreCase(newRole)) {
             Collection<MemberTypeDTO> memberTypes = findByAssociationIdDTO(associationDTO.id());
             for (MemberTypeDTO mt : memberTypes) {
@@ -240,6 +258,7 @@ public class MemberTypeService {
             }
         }
 
+        // Update the role of the target member type
         MemberType target = findById(memberTypeId).orElseThrow();
         target.setName(newRole);
         save(target);
@@ -333,11 +352,12 @@ public class MemberTypeService {
     }
 
 
-
+    /* Method to permit to an user to leave an association */
     public void deleteUserFromAssociation(Long associationId, Long userId) {
 
         List<MemberType> typesToDelete = memberTypeRepository.findByMemberIdAndAssociationId(userId, associationId);
 
+        // Check if the user is trying to leave as president
         for (MemberType mt : typesToDelete) {
             if ("president".equalsIgnoreCase(mt.getName())) {
                 throw new IllegalStateException("You must choose a new president before leaving the association.");

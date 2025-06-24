@@ -14,6 +14,7 @@ import es.codeurjc.helloword_vscode.model.Minute;
 public interface MemberMapper {
 
     @Mapping(source = "association.id", target = "associationId")
+    @Mapping(source = "association.name", target = "associationName")
     @Mapping(source = "name", target = "memberType")
     AssociationMemberTypeDTO toRoleDTO(MemberType memberType);
 

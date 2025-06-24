@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,6 +50,13 @@ public class MemberWebController {
 
         // Determine if the user is admin
         model.addAttribute("isAdmin", request.isUserInRole("ADMIN"));
+
+        // Retrieve the current authentication information
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        // Determine if the user is authenticated and not anonymous
+        boolean isAuthenticated = auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName());
+        model.addAttribute("isAuthenticated", isAuthenticated);
 
     }
     
@@ -99,7 +108,7 @@ public class MemberWebController {
     /* Research of a specific association or user by ID */
     @PostMapping("/search")
     public String searchUserOrAssociation(@RequestParam(name = "searchId", required = false) Long id,
-                                        @RequestParam(name = "searchType", required = false) String searchType,
+                                        @RequestParam(required = false) String searchType,
                                         Model model) {
         if (id != null && "user".equals(searchType)) {
             try {

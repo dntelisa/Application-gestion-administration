@@ -5,6 +5,8 @@ import java.time.LocalDate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,7 @@ import es.codeurjc.helloword_vscode.dto.NewMinuteRequestDTO;
 import es.codeurjc.helloword_vscode.service.AssociationService;
 import es.codeurjc.helloword_vscode.service.MemberService;
 import es.codeurjc.helloword_vscode.service.MinuteService;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Controller for managing minutes in the web application.
@@ -38,6 +41,19 @@ public class MinuteWebController {
 	private AssociationService associationService;
 
     @Autowired MemberService memberService;
+
+    /* Adds authentication attributes to all templates */ 
+    @ModelAttribute
+    public void addAttributes(Model model, HttpServletRequest request) {
+
+        // Retrieve the current authentication information
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        // Determine if the user is authenticated and not anonymous
+        boolean isAuthenticated = auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName());
+        model.addAttribute("isAuthenticated", isAuthenticated);
+
+    }
 
     /* Create minute */
     @PostMapping("/association/{id}/new_minute")
