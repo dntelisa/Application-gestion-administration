@@ -33,6 +33,7 @@ import es.codeurjc.helloword_vscode.model.Member;
 import es.codeurjc.helloword_vscode.model.MemberType;
 import es.codeurjc.helloword_vscode.model.Minute;
 import es.codeurjc.helloword_vscode.repository.MemberRepository;
+import es.codeurjc.helloword_vscode.repository.MinuteRepository;
 
 /*
  * This service class provides methods to perform various operations on Member entities,
@@ -51,11 +52,9 @@ public class MemberService implements UserDetailsService {
 	private MemberTypeService memberTypeService;
 
 	@Autowired
-	@Lazy
-	private MinuteService minuteService;
+	private MinuteRepository minuteRepository;
 
 	@Autowired
-	@Lazy
     private PasswordEncoder passwordEncoder;
 
 	@Autowired
@@ -227,10 +226,10 @@ public class MemberService implements UserDetailsService {
 		}
 
 		// 2. Delete participation to meetings
-		List<Minute> minutes = minuteService.findAllByParticipantsContains(user);
+		List<Minute> minutes = minuteRepository.findAllByParticipantId(member.getId());
 		for (Minute minute : minutes) {
-			minute.getParticipants().remove(user);
-			minuteService.save(minute);
+			minute.getParticipants().remove(member);
+			minuteRepository.save(minute);
 		}
 
 		// 3. Delete user
@@ -252,10 +251,10 @@ public class MemberService implements UserDetailsService {
 		}
 
 		// Remove participation in meetings
-		List<Minute> minutes = minuteService.findAllByParticipantsContains(member);
+		List<Minute> minutes = minuteRepository.findAllByParticipantId(member.getId());
 		for (Minute minute : minutes) {
 			minute.getParticipants().remove(member);
-			minuteService.save(minute);
+			minuteRepository.save(minute);
 		}
 
 		memberRepository.delete(member);
@@ -289,10 +288,10 @@ public class MemberService implements UserDetailsService {
 		}
 
 		// Remove participation in meetings
-		List<Minute> minutes = minuteService.findAllByParticipantsContains(member);
+		List<Minute> minutes = minuteRepository.findAllByParticipantId(member.getId());
 		for (Minute minute : minutes) {
 			minute.getParticipants().remove(member);
-			minuteService.save(minute);
+			minuteRepository.save(minute);
 		}
 
 		memberRepository.delete(member);

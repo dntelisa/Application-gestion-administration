@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -26,15 +27,8 @@ import es.codeurjc.helloword_vscode.service.MemberService;
 @EnableWebSecurity
 public class SecurityConfiguration {
 
-    // Service to retrieve user details
-    @Autowired
-    public MemberService userDetailService;
-
     @Autowired
 	private UnauthorizedHandlerJwt unauthorizedHandlerJwt;
-
-	@Autowired
-	private JwtRequestFilter jwtRequestFilter;
 
     @Autowired
     private CustomAccessDeniedHandler accessDeniedHandler;
@@ -50,25 +44,29 @@ public class SecurityConfiguration {
 		return authConfig.getAuthenticationManager();
 	}
 
+    @Bean
+    public UserDetailsService userDetailsService(MemberService memberService) {
+        return username -> memberService.loadUserByUsername(username);
+    }
+
+
 
     /* Bean for authentication provider */
 	@Bean
-	public DaoAuthenticationProvider authenticationProvider() {
-		DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-
-		authProvider.setUserDetailsService(userDetailService);
-		authProvider.setPasswordEncoder(passwordEncoder());
-
-		return authProvider;
-	}
+    public DaoAuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder);
+        return authProvider;
+    }
 
 
     /* Bean for security filter chain */
     @Bean
 	@Order(1)
-	public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain apiFilterChain(HttpSecurity http, DaoAuthenticationProvider authProvider, JwtRequestFilter jwtRequestFilter) throws Exception {
 		
-		http.authenticationProvider(authenticationProvider());
+		http.authenticationProvider(authProvider);
 		
 		http
 			.securityMatcher("/api/**")
@@ -120,9 +118,9 @@ public class SecurityConfiguration {
 	@Bean
     @Order(2)
     // Configure method with http object for security
-    public SecurityFilterChain webFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain webFilterChain(HttpSecurity http, DaoAuthenticationProvider authProvider) throws Exception {
         // Set the authentication provider
-        http.authenticationProvider(authenticationProvider());
+        http.authenticationProvider(authProvider);
     
         // Configure authorization rules
         http

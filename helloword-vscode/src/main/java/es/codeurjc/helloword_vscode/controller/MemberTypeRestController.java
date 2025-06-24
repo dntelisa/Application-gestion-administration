@@ -18,9 +18,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
+import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.EditMTRequestDTO;
+import es.codeurjc.helloword_vscode.dto.MemberDTO;
 import es.codeurjc.helloword_vscode.dto.MemberTypeDTO;
 import es.codeurjc.helloword_vscode.dto.NewMTRequestDTO;
+import es.codeurjc.helloword_vscode.service.AssociationService;
+import es.codeurjc.helloword_vscode.service.MemberService;
 import es.codeurjc.helloword_vscode.service.MemberTypeService;
 
 /*
@@ -33,6 +37,12 @@ public class MemberTypeRestController {
     
     @Autowired
     private MemberTypeService memberTypeService;
+
+    @Autowired
+    private MemberService memberService;
+
+    @Autowired
+    private AssociationService associationService;
 
     // GET all member types
     @GetMapping("/")
@@ -59,19 +69,30 @@ public class MemberTypeRestController {
     // POST create new member type
     @PostMapping("/")
     public ResponseEntity<MemberTypeDTO> createMemberType(
-            @RequestBody NewMTRequestDTO MTRequestDTO,
+            @RequestBody NewMTRequestDTO requestDTO,
             Authentication authentication) {
+
         try {
-            MemberTypeDTO created = memberTypeService.createMemberType(MTRequestDTO, authentication);
+            // Retrieve the member and association DTOs
+            MemberDTO memberDTO = memberService.findByIdDTO(requestDTO.memberId());
+            AssociationDTO associationDTO = associationService.findByIdDTO(requestDTO.associationId());
+
+            // Call the service
+            MemberTypeDTO created = memberTypeService.createMemberType(memberDTO, associationDTO, requestDTO.memberType(), authentication);
+
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
+
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
+
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
+
 
 
 

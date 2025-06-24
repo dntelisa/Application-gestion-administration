@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
+import es.codeurjc.helloword_vscode.dto.AssociationBasicDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.MemberDTO;
 import es.codeurjc.helloword_vscode.dto.MemberTypeLightDTO;
@@ -145,11 +146,17 @@ public class AssoWebController {
     @PostMapping("/association/{id}/join")
     public String joinAssociation(@PathVariable Long id, Principal principal) {
         if (principal != null) {
-            String username = principal.getName();
-            memberTypeService.addUserToAssociation(id, username);
+            // Retrieve DTOs
+            MemberDTO memberDTO = memberService.findByNameDTO(principal.getName());
+            AssociationDTO associationDTO = associationService.findByIdDTO(id);
+
+            // Call service
+            memberTypeService.addUserToAssociation(associationDTO, memberDTO);
         }
+
         return "redirect:/association/" + id;
     }
+
 
 
     /* Allow an user to leave an association */ 

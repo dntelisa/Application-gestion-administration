@@ -13,4 +13,7 @@ import java.util.List;
 public interface MemberTypeRepository extends JpaRepository<MemberType, Long> {
     /* Find MemberType entities by the associated Member */
     List<MemberType> findByMember(Member member);
+
+    List<MemberType> findByMemberIdAndAssociationId(Long memberId, Long associationId);
+
 }
