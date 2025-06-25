@@ -21,8 +21,7 @@ services:
       retries: 5
 
   app:
-    build:
-      context: .
+    image: dntelisa/asso:1.0.0
     container_name: helloworld-app
     depends_on:
       db:
@@ -35,4 +34,4 @@ services:
       SPRING_DATASOURCE_PASSWORD: password
 
 volumes:
-  db_data:   
+  db_data:
