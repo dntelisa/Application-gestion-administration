@@ -107,11 +107,6 @@ In the second phase, I implemented critical security features, including user au
 - **Create Minute**: ![](createMinute.png)
 - **Create Asso**: ![](createAsso.png)
 
-
-
-### Navigation Diagram
-
-
 ## Execution Instructions
 ### Prerequisites
 - **Java**: Version 21.0.5
@@ -125,17 +120,19 @@ In the second phase, I implemented critical security features, including user au
    ```
 2. Navigate to the project directory:
    ```cd practica-sistemas-distribuidos-2025-grupo-1```
-4. Configure the database in `application.properties`:
-   ```properties
-   spring.datasource.url=jdbc:mysql://localhost:3306/associations
-   spring.datasource.username=root
-   spring.datasource.password=password
+3. Launch MySQL on terminal with `net start MySQL80`
+4. Configure the connexion in MySQL Workbench:
+   ```
+   Hostname: 127.0.0.1
+   Port: 3306
+   Username=root
+   Password=password
    ```
 5. Install dependencies and build the project:
    ```sh
    mvn clean install
    ```
-6. Create database associations in MySQL Workbench
+6. Create database `associations` in MySQL Workbench
 7. Run the application:
    ```sh
    mvn spring-boot:run
@@ -146,9 +143,10 @@ In the second phase, I implemented critical security features, including user au
 ![entities_diagram](entitiesDiagram.png) 
 
 ### Class Diagram
+![class_diagram](classDiag.png)
 
 ### Navigation Diagram
-
+![nav_diagram](navDiag.png)
 ---
 
 
