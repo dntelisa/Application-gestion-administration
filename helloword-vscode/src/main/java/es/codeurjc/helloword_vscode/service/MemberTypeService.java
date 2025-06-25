@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import es.codeurjc.helloword_vscode.ResourceNotFoundException;
 import es.codeurjc.helloword_vscode.dto.AssociationBasicDTO;
+import es.codeurjc.helloword_vscode.dto.AssociationBasicMapper;
 import es.codeurjc.helloword_vscode.dto.AssociationDTO;
 import es.codeurjc.helloword_vscode.dto.AssociationMapper;
 import es.codeurjc.helloword_vscode.dto.EditMTRequestDTO;
@@ -21,7 +22,6 @@ import es.codeurjc.helloword_vscode.dto.MemberMapper;
 import es.codeurjc.helloword_vscode.dto.MemberTypeDTO;
 import es.codeurjc.helloword_vscode.dto.MemberTypeLightDTO;
 import es.codeurjc.helloword_vscode.dto.MemberTypeMapper;
-import es.codeurjc.helloword_vscode.dto.AssociationBasicMapper;
 import es.codeurjc.helloword_vscode.model.Member;
 import es.codeurjc.helloword_vscode.model.MemberType;
 import es.codeurjc.helloword_vscode.repository.MemberTypeRepository;
@@ -370,11 +370,6 @@ public class MemberTypeService {
     /* Convert entity to DTO */
     private MemberTypeDTO toDTO(MemberType memberType) {
         return memberTypeMapper.toDTO(memberType);
-    }
-
-    /* Convert entity to DTO */
-    private MemberDTO toDTO(Member member) {
-        return memberMapper.toDTO(member);
     }
 
     /* Converted an association set to DTOs */

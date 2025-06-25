@@ -3,7 +3,6 @@ package es.codeurjc.helloword_vscode.service;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -109,13 +108,6 @@ public class MinuteService {
 		minuteRepository.delete(minute);
 
 		return minuteDTO;
-	}
-
-
-
-	/* Find all Minute entities that contain the specified participant */
-	List<Minute> findAllByParticipantsContains(Member participant){
-		return minuteRepository.findAllByParticipantsContains(participant);
 	}
 
 	/* Methode to create a new minute web controller */
@@ -308,9 +300,9 @@ public class MinuteService {
 	}
 
 	/* Convert a minutes set to DTOs */
-	private Collection<MinuteDTO> toDTOs(Collection<Minute> minutes) {
-		return minuteMapper.toDTOs(minutes);
-	}
+	// private Collection<MinuteDTO> toDTOs(Collection<Minute> minutes) {
+	// 	return minuteMapper.toDTOs(minutes);
+	// }
 
 	/* Convert a DTO to entity */
 	public Minute toDomain(MinuteDTO minuteDTO){

@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.sql.Blob;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -260,10 +259,10 @@ public class AssociationService {
 		return associationBasicMapper.toDTO(association);
 	}
 
-	/* Converted an association set to DTOs */
-	private Collection<AssociationDTO> toDTOs(Collection<Association> associations) {
-		return associationMapper.toDTOs(associations);
-	}
+	// /* Converted an association set to DTOs */
+	// private Collection<AssociationDTO> toDTOs(Collection<Association> associations) {
+	// 	return associationMapper.toDTOs(associations);
+	// }
 
 	/* Converted a DTO to entity */
 	private Association toDomain(AssociationDTO associationDTO){

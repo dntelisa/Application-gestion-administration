@@ -2,7 +2,6 @@ package es.codeurjc.helloword_vscode.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -343,13 +342,13 @@ public class MemberService implements UserDetailsService {
 		return new MemberDTO(details.id(), details.name(), details.surname());
 	}
 
-	/* Converted a member set to DTOs */
-	private Collection<MemberDTO> toDTOs(Collection<Member> members) {
-		return memberMapper.toDTOs(members);
-	}
+	// /* Converted a member set to DTOs */
+	// private Collection<MemberDTO> toDTOs(Collection<Member> members) {
+	// 	return memberMapper.toDTOs(members);
+	// }
 
-	/* Converted a DTO to entity */
-	private Member toDomain(MemberDTO memberDTO){
-		return memberMapper.toDomain(memberDTO);
-	}
+	// /* Converted a DTO to entity */
+	// private Member toDomain(MemberDTO memberDTO){
+	// 	return memberMapper.toDomain(memberDTO);
+	// }
 }
