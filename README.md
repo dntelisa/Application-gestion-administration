@@ -1,5 +1,8 @@
 # Web Application: Association Management
 
+This web application enables users to manage associations. Users can create and manage associations, join or leave them, assign and modify member roles (such as president, treasurer, etc.), and organize meeting minutes. The platform offers both a user-friendly web interface and a REST API for seamless integration and interaction with the system.
+
+
 ## Development Team
 
 | Name | Email | GitHub |
