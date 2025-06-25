@@ -80,7 +80,6 @@ public class AssoRestController {
     @PostMapping("/")
     public ResponseEntity<AssociationDTO> createAssociation(@RequestBody AssociationDTO associationDTO) {
         AssociationDTO created = associationService.createAsso(associationDTO);
-        System.out.println("Created ID: " + created.id());
         URI location = ServletUriComponentsBuilder
             .fromCurrentRequest()
             .path("/{id}")

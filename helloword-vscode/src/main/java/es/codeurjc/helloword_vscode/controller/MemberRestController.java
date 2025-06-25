@@ -96,7 +96,6 @@ public class MemberRestController {
     @PostMapping("/")
     public ResponseEntity<MemberDTO> createMember(@RequestBody NewMemberRequestDTO memberDTO) {
         MemberDTO created = memberService.createMember(memberDTO);
-        System.out.println("Created ID: " + created.id());
         URI location = ServletUriComponentsBuilder
             .fromCurrentRequest()
             .path("/{id}")

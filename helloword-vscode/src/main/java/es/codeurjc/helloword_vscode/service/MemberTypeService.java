@@ -246,14 +246,15 @@ public class MemberTypeService {
 
         // If the new role is president, demote the current president to a member
         if ("president".equalsIgnoreCase(newRole)) {
-            Collection<MemberTypeDTO> memberTypes = findByAssociationIdDTO(associationDTO.id());
-            for (MemberTypeDTO mt : memberTypes) {
-                if ("president".equalsIgnoreCase(mt.name())
-                    && !mt.member().id().equals(targetMemberTypeDTO.member().id())) {
 
-                    MemberType updated = findById(mt.id()).orElseThrow();
-                    updated.setName("member");
-                    save(updated);
+            List<MemberType> presidents = memberTypeRepository
+                .findByAssociationIdAndNameIgnoreCase(associationDTO.id(), "president");
+
+            for (MemberType president : presidents) {
+                // If it's not the target, demote
+                if (!targetMemberTypeDTO.member().id().equals(president.getMember().getId())){
+                    president.setName("member");
+                    save(president);
                 }
             }
         }

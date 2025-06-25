@@ -304,13 +304,8 @@ public class MemberService implements UserDetailsService {
 
 	/* Find all members of an association */
 	public List<MemberDTO> findMembersByAssociationId(Long associationId) {
-		Association association = associationService.findById(associationId);
-
-		return association.getMemberTypes().stream()
-			.map(MemberType::getMember)
-			.distinct()
-			.map(this::toDTO)
-			.collect(Collectors.toList());
+		List<Member> members = memberRepository.findMembersByAssociationId(associationId);
+		return members.stream().map(this::toDTO).toList();
 	}
 
 	/* Get all members with pagination */
