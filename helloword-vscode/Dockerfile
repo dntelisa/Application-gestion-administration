@@ -10,10 +10,10 @@ FROM eclipse-temurin:17-jdk-alpine
 VOLUME /tmp
 WORKDIR /app
 
-# Copy of generated jar
+# generated jar copy
 COPY --from=build /app/target/*.jar app.jar
 
-# Copy of keystore SSL
+# keystore SSL copy
 COPY src/main/resources/keystore.jks keystore.jks
 
 EXPOSE 8443
