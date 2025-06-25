@@ -10,7 +10,7 @@ services:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: associations
     ports:
-      - "3306:3306"
+      - "3307:3306"
 
   app:
     build:
