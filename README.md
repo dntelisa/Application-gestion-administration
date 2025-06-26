@@ -97,10 +97,15 @@ In the second phase, I implemented critical security features, including user au
 - MemberService.java
 
 ### Mathéo RENAULT
-#### Tasks completed
-- Creation of entities
-- Navigation diagram
-- Class diagram
+#### Tasks completed in the first part
+In the first phase of the project, I started to develop some functions about editing and deleting minutes. I tried to organized the project files but we had to reorganize it becasue or files diversity, and I added some comments in few files for a better understanding. Moreover, I developed the class diagram and the navigation diagram and participated to develop the controllers, services and repositories.
+
+#### Tasks completed in the second part
+In this phase the focus was made on the REST part, so I developed many of the DTOs files and participated on the REST files developement.
+Additionnaly I updated the diagrams in order to fit the REST controllers working.
+
+#### Tasks completed in the first part
+In the final part, I developed the Dockerfile, the docker-compose.local.yml and .dockerignore. Moreover I updated the pom.xml and launched the app on docker. I also did the docker documentation in order to run the app on docker.
 
 ## Screenshots & Navigation Flow
 
