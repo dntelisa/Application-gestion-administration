@@ -146,6 +146,50 @@ In the second phase, I implemented critical security features, including user au
    ```sh
    mvn spring-boot:run
    ```
+### Docker
+1. Ejecución de la aplicación con Docker Compose
+
+La aplicación se puede ejecutar utilizando dos archivos diferentes de docker-compose:
+
+- **Entorno local:**
+  ```sh
+  docker-compose -f docker-compose.local.yml up --build
+  ```
+- **Entorno de produccion :**
+  ```sh
+  docker-compose -f docker-compose.prod.yml up -d
+  ```
+2. Construcci´on de la imagen Docker con Dockerfile
+Para construir la imagen de la aplicaci´on manualmente con el Dockerfile:
+  ```sh
+  docker build −t dntelisa/asso:1.0.0
+  ```
+Puedes luego subirla a Docker Hub:
+  ```sh
+  docker build −t dntelisa/asso:1.0.0
+  ```
+3. Despliegue en m´aquinas virtuales
+Para desplegar la aplicaci´on:
+ - Conectarse por SSH a la m´aquina virtual:
+ ```sh
+  ssh -i ssh-keys/sidi01.key vmuser@193.147.60.41
+  ```
+  - Clonar el repositorio del proyecto:
+   ```sh
+    git clone https://github.com/SSDD-2025/practica-sistemas-distribuidos-2025-grupo-1.git
+   ```
+  - Asegurarse de tener Docker y Docker Compose instalados.
+  - Ejecutar el despliegue:
+  ```sh
+    docker−compose −f docker−compose.prod.yml up −d
+   ```
+5. URL de la aplicaci´on desplegada
+La aplicaci´on est´a disponible en la siguiente URL p´ublica (utilizando HTTPS y el puerto
+8443):
+```sh
+    https://193.147.60.41:8443
+   ```
+
 
 ## Diagrams
 ### Database Entity Diagram 
