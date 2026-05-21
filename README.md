@@ -1,5 +1,8 @@
 # Web Application: Association Management
 
+This web application enables users to manage associations. Users can create and manage associations, join or leave them, assign and modify member roles (such as president, treasurer, etc.), and organize meeting minutes. The platform offers both a user-friendly web interface and a REST API for seamless integration and interaction with the system.
+
+
 ## Development Team
 
 | Name | Email | GitHub |
@@ -70,7 +73,7 @@ In the first phase of the project, I focused on enhancing the application's user
 5. Index.html
 
 #### Tasks completed in the second part
-In the second phase, I implemented critical security features, including user authorization and authentication mechanisms. I established role-based permissions to control access to various pages, ensuring that users could only access content appropriate to their roles. I adjusted the login and logout functionalities for the Member entity to incorporate both user and admin roles, facilitating secure access to different parts of the application. I integrated CSRF protection to safeguard against cross-site request forgery attacks and employed BCrypt for password encryption, enhancing data security. Furthermore, I added HTTPS encryption to secure web communications, ensuring that all data transmitted between the client and server remained confidential and protected.
+In the second phase, I implemented critical security features, including user authorization and authentication mechanisms. I established role-based permissions to control access to various pages, ensuring that users could only access content appropriate to their roles. I adjusted the login and logout functionalities for the Member entity to incorporate both user and admin roles, facilitating secure access to different parts of the application. I integrated CSRF protection to safeguard against cross-site request forgery attacks and employed BCrypt for password encryption, enhancing data security. Furthermore, I added HTTPS encryption to secure web communications, ensuring that all data transmitted between the client and server remained confidential and protected. I implemented all the REST API and designed dedicated DTOs to ensure a clean separation between the API layer and the internal domain model. I also add pagination on web and rest controller with adding of AJAX in html files. Finally, I also reorganized all the files, particularly so that the business logic of each entity is found in the correct services.
 
 #### 5 Most Important Commits
 1. [Encrypted communication via HTTPS and user with credentials in the code](https://github.com/SSDD-2025/practica-sistemas-distribuidos-2025-grupo-1/commit/4e966f14a3175233ed5473d121341965b7c036b3)
@@ -81,17 +84,23 @@ In the second phase, I implemented critical security features, including user au
 
 3. [Roles in DB](https://github.com/SSDD-2025/practica-sistemas-distribuidos-2025-grupo-1/commit/80665252ee2dc7c65d592364f306a0090e366800)
    - Implemented roles in the database.
+  
+4. [CRUD Association Image](https://github.com/SSDD-2025/practica-sistemas-distribuidos-2025-grupo-1/commit/57f1a98cab9a7030486fa53896c5f7a1f4504d22)
+
+5. [Resolve cycle issue](https://github.com/SSDD-2025/practica-sistemas-distribuidos-2025-grupo-1/commit/6ee5ce5f7d108ce4a7ddc5dd35187f75f2eca514#diff-b163220172e3c98ccfd5aca3d13b77d2da810be60786cf3e1aa23ea0c068784d)
      
 #### 5 Key Files
-- SecurityConfiguration
-- CSRFHandlerConfiguration
+- SecurityConfiguration.java
+- CSRFHandlerConfiguration.java
+- Index.html
+- AssoRestController.html
+- MemberService.java
 
 ### Mathéo RENAULT
 #### Tasks completed
 - Creation of entities
 - Navigation diagram
 - Class diagram
-
 
 ## Screenshots & Navigation Flow
 
@@ -107,11 +116,6 @@ In the second phase, I implemented critical security features, including user au
 - **Create Minute**: ![](createMinute.png)
 - **Create Asso**: ![](createAsso.png)
 
-
-
-### Navigation Diagram
-
-
 ## Execution Instructions
 ### Prerequisites
 - **Java**: Version 21.0.5
@@ -125,30 +129,77 @@ In the second phase, I implemented critical security features, including user au
    ```
 2. Navigate to the project directory:
    ```cd practica-sistemas-distribuidos-2025-grupo-1```
-4. Configure the database in `application.properties`:
-   ```properties
-   spring.datasource.url=jdbc:mysql://localhost:3306/associations
-   spring.datasource.username=root
-   spring.datasource.password=password
+3. Launch MySQL on terminal with `net start MySQL80`
+4. Configure the connexion in MySQL Workbench:
+   ```
+   Hostname: 127.0.0.1
+   Port: 3306
+   Username=root
+   Password=password
    ```
 5. Install dependencies and build the project:
    ```sh
    mvn clean install
    ```
-6. Create database associations in MySQL Workbench
+6. Create database `associations` in MySQL Workbench
 7. Run the application:
    ```sh
    mvn spring-boot:run
    ```
+### Docker
+1. Ejecución de la aplicación con Docker Compose
+
+La aplicación se puede ejecutar utilizando dos archivos diferentes de docker-compose:
+
+- **Entorno local:**
+  ```sh
+  docker-compose -f docker-compose.local.yml up --build
+  ```
+- **Entorno de produccion :**
+  ```sh
+  docker-compose -f docker-compose.prod.yml up -d
+  ```
+2. Construcci´on de la imagen Docker con Dockerfile
+Para construir la imagen de la aplicaci´on manualmente con el Dockerfile:
+  ```sh
+  docker build −t dntelisa/asso:1.0.0
+  ```
+Puedes luego subirla a Docker Hub:
+  ```sh
+  docker build −t dntelisa/asso:1.0.0
+  ```
+3. Despliegue en m´aquinas virtuales
+Para desplegar la aplicaci´on:
+ - Conectarse por SSH a la m´aquina virtual:
+ ```sh
+  ssh -i ssh-keys/sidi01.key vmuser@193.147.60.41
+  ```
+  - Clonar el repositorio del proyecto:
+   ```sh
+    git clone https://github.com/SSDD-2025/practica-sistemas-distribuidos-2025-grupo-1.git
+   ```
+  - Asegurarse de tener Docker y Docker Compose instalados.
+  - Ejecutar el despliegue:
+  ```sh
+    docker−compose −f docker−compose.prod.yml up −d
+   ```
+5. URL de la aplicaci´on desplegada
+La aplicaci´on est´a disponible en la siguiente URL p´ublica (utilizando HTTPS y el puerto
+8443):
+```sh
+    https://193.147.60.41:8443
+   ```
+
 
 ## Diagrams
 ### Database Entity Diagram 
 ![entities_diagram](entitiesDiagram.png) 
 
 ### Class Diagram
+![class_diagram](classDiag.png)
 
 ### Navigation Diagram
-
+![nav_diagram](navDiag.png)
 ---
 
 

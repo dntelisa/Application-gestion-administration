@@ -1,16 +1,76 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Members Page</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-    {{> header}}
-    <h2>Members</h2>
-    <ul>
-        {{#isMember}}
-            <a href="/user/{{id}}"><li>{{name}} {{surname}} {{id}}</li></a>  
-        {{/isMember}}
-    </ul>
-    {{> footer}}
+{{> header}}
+
+<h2>Members</h2>
+
+<!-- list to display members -->
+<ul id="membersList"></ul>
+
+<!-- Pagination controls -->
+<div id="pagination">
+    <button id="prev">Previous</button>
+    <span id="pageNumber">1</span>
+    <button id="next">Next</button>
+</div>
+
+{{> footer}}
+
+<script>
+let currentPage = 0;    // Current page index
+let pageSize = 5;       // Number of items per page
+let totalPages = 0;     // Total number of pages (to be set from backend)
+
+function loadMembers(page) {
+    $.get(`/api/members/?page=${page}&size=${pageSize}`, function(data) {
+        const membersList = $("#membersList");
+        membersList.empty(); // Clear the list before repopulating
+
+        // Fill the list with members returned by the API
+        data.content.forEach(member => {
+            const item = `<a href="/user/${member.id}"><li>${member.name} ${member.surname} ${member.id}</li></a>`;
+            membersList.append(item);
+        });
+
+        // Update pagination display and control
+        $("#pageNumber").text(page + 1);
+        totalPages = data.totalPages;
+
+        // Disable Previous button on first page
+        $("#prev").prop("disabled", data.first);
+
+        // Disable Next button on last page
+        $("#next").prop("disabled", data.last || (page + 1 >= totalPages));
+    });
+}
+
+// Event handler for Previous button
+$("#prev").click(function() {
+    if (currentPage > 0) {
+        currentPage--;
+        loadMembers(currentPage);
+    }
+});
+
+// Event handler for Next button
+$("#next").click(function() {
+    if (currentPage + 1 < totalPages) {
+        currentPage++;
+        loadMembers(currentPage);
+    }
+});
+
+// Load the first page when the document is ready
+$(document).ready(function() {
+    loadMembers(currentPage);
+});
+</script>
+
 </body>
 </html>

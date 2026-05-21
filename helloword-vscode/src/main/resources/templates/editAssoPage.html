@@ -12,7 +12,7 @@
 
     <div>
         <label>New image (optional):</label>
-        <input type="file" name="image" accept="image/*"/>
+        <input type="file" name="imageField" accept="image/*"/>
     </div>
     <input type="hidden" name="_csrf" value="{{token}}"/>
     <p>
@@ -21,7 +21,7 @@
     </p>
 </form>
 
-{{#association.imageFile}}
+{{#association.image}}
     <hr>
     <p>Actual Image: </p>
     <img src="/association/{{association.id}}/image" alt="Association image" width="150"/><br><br>
@@ -29,6 +29,6 @@
         <input type="hidden" name="_csrf" value="{{token}}"/>
         <button type="submit">Delete image</button>
     </form>
-{{/association.imageFile}}
+{{/association.image}}
 
 {{>footer}}

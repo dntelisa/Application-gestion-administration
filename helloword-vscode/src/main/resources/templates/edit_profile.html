@@ -11,7 +11,7 @@
 		{{/error}}	
         <p>Name: <input type="text" name="name" value="{{user.name}}" required/></p>
         <p>Surname: <input type="text" name="surname" value="{{user.surname}}" required/></p>
-        <p>Password: <input type="password" name="pwd" /></p>
+        <p>Password: <input type="password" name="password" /></p>
         <input type="hidden" name="_csrf" value="{{token}}"/>
         <button onclick="location.href='/'; return false;">Cancel</button>
         <input type="submit" value="Update" />

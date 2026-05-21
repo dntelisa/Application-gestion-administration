@@ -1,0 +1,837 @@
+openapi: 3.1.0
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: https://localhost:8443
+  description: Generated server url
+paths:
+  /api/minutes/{id}:
+    get:
+      tags:
+      - minute-rest-controller
+      operationId: getMinute
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MinuteDTO"
+    put:
+      tags:
+      - minute-rest-controller
+      operationId: updateMinute
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EditMinuteRequestDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MinuteDTO"
+    delete:
+      tags:
+      - minute-rest-controller
+      operationId: deleteMinute
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MinuteDTO"
+  /api/members/{id}:
+    get:
+      tags:
+      - member-rest-controller
+      operationId: getMemberDetails
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MemberDetailsDTO"
+    put:
+      tags:
+      - member-rest-controller
+      operationId: updateMember
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewMemberRequestDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MemberDTO"
+    delete:
+      tags:
+      - member-rest-controller
+      operationId: deleteMember
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MemberDTO"
+  /api/memberTypes/{id}:
+    get:
+      tags:
+      - member-type-rest-controller
+      operationId: getMemberType
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MemberTypeDTO"
+    put:
+      tags:
+      - member-type-rest-controller
+      operationId: updateMemberType
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EditMTRequestDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MemberTypeDTO"
+    delete:
+      tags:
+      - member-type-rest-controller
+      operationId: deleteMemberType
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MemberTypeDTO"
+  /api/associations/{id}:
+    get:
+      tags:
+      - asso-rest-controller
+      operationId: getAssociation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AssociationDTO"
+    put:
+      tags:
+      - asso-rest-controller
+      operationId: updateAssociation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssociationDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AssociationDTO"
+    delete:
+      tags:
+      - asso-rest-controller
+      operationId: deleteAssociation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AssociationDTO"
+  /api/associations/{id}/image:
+    get:
+      tags:
+      - asso-rest-controller
+      operationId: getAssociationImage
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    put:
+      tags:
+      - asso-rest-controller
+      operationId: replacePostImage
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                imageFile:
+                  type: string
+                  format: binary
+              required:
+              - imageFile
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    post:
+      tags:
+      - asso-rest-controller
+      operationId: createAssoImage
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                imageFile:
+                  type: string
+                  format: binary
+              required:
+              - imageFile
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    delete:
+      tags:
+      - asso-rest-controller
+      operationId: deleteAssociationImage
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/minutes/association/{id}:
+    post:
+      tags:
+      - minute-rest-controller
+      operationId: createMinute
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewMinuteRequestDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MinuteDTO"
+  /api/members/:
+    get:
+      tags:
+      - member-rest-controller
+      operationId: getAllMembers
+      parameters:
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PagedResponseDTOMemberDTO"
+    post:
+      tags:
+      - member-rest-controller
+      operationId: createMember
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewMemberRequestDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MemberDTO"
+  /api/memberTypes/:
+    get:
+      tags:
+      - member-type-rest-controller
+      operationId: getAllMemberTypes
+      parameters:
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PagedModelMemberTypeDTO"
+    post:
+      tags:
+      - member-type-rest-controller
+      operationId: createMemberType
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewMTRequestDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MemberTypeDTO"
+  /api/auth/refresh:
+    post:
+      tags:
+      - login-controller
+      operationId: refreshToken
+      parameters:
+      - name: RefreshToken
+        in: cookie
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /api/auth/logout:
+    post:
+      tags:
+      - login-controller
+      operationId: logOut
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /api/auth/login:
+    post:
+      tags:
+      - login-controller
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /api/associations/:
+    get:
+      tags:
+      - asso-rest-controller
+      operationId: getAllAssociations
+      parameters:
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PagedResponseDTOAssociationBasicDTO"
+    post:
+      tags:
+      - asso-rest-controller
+      operationId: createAssociation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssociationDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AssociationDTO"
+  /api/minutes/:
+    get:
+      tags:
+      - minute-rest-controller
+      operationId: getAllMinutes
+      parameters:
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PagedModelMinuteDTO"
+components:
+  schemas:
+    EditMinuteRequestDTO:
+      type: object
+      properties:
+        minuteId:
+          type: integer
+          format: int64
+        assoId:
+          type: integer
+          format: int64
+        date:
+          type: string
+        participantsIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        content:
+          type: string
+        duration:
+          type: number
+          format: double
+    AssociationBasicDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    MemberDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        surname:
+          type: string
+    MinuteDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        date:
+          type: string
+        participants:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberDTO"
+        content:
+          type: string
+        duration:
+          type: number
+          format: double
+        association:
+          $ref: "#/components/schemas/AssociationBasicDTO"
+    NewMemberRequestDTO:
+      type: object
+      properties:
+        name:
+          type: string
+        surname:
+          type: string
+        password:
+          type: string
+    EditMTRequestDTO:
+      type: object
+      properties:
+        name:
+          type: string
+    MemberTypeDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        member:
+          $ref: "#/components/schemas/MemberDTO"
+        association:
+          $ref: "#/components/schemas/AssociationBasicDTO"
+    AssociationDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        image:
+          type: boolean
+        memberTypes:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberTypeLightDTO"
+        minutes:
+          type: array
+          items:
+            $ref: "#/components/schemas/MinuteLightDTO"
+    MemberTypeLightDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        member:
+          $ref: "#/components/schemas/MemberDTO"
+    MinuteLightDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        date:
+          type: string
+        content:
+          type: string
+        duration:
+          type: number
+          format: double
+    NewMinuteRequestDTO:
+      type: object
+      properties:
+        date:
+          type: string
+        participantsIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+        content:
+          type: string
+        duration:
+          type: number
+          format: double
+    NewMTRequestDTO:
+      type: object
+      properties:
+        memberId:
+          type: integer
+          format: int64
+        associationId:
+          type: integer
+          format: int64
+        memberType:
+          type: string
+    AuthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - SUCCESS
+          - FAILURE
+        message:
+          type: string
+        error:
+          type: string
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    Pageable:
+      type: object
+      properties:
+        page:
+          type: integer
+          format: int32
+          minimum: 0
+        size:
+          type: integer
+          format: int32
+          minimum: 1
+        sort:
+          type: array
+          items:
+            type: string
+    PageMetadata:
+      type: object
+      properties:
+        size:
+          type: integer
+          format: int64
+        number:
+          type: integer
+          format: int64
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int64
+    PagedModelMinuteDTO:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/MinuteDTO"
+        page:
+          $ref: "#/components/schemas/PageMetadata"
+    AssociationMemberTypeDTO:
+      type: object
+      properties:
+        associationId:
+          type: integer
+          format: int64
+        associationName:
+          type: string
+        memberType:
+          type: string
+    MemberDetailsDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        surname:
+          type: string
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssociationMemberTypeDTO"
+        participatedMinutes:
+          type: array
+          items:
+            $ref: "#/components/schemas/MinuteLightDTO"
+    PagedResponseDTOMemberDTO:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberDTO"
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        last:
+          type: boolean
+        first:
+          type: boolean
+    PagedModelMemberTypeDTO:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberTypeDTO"
+        page:
+          $ref: "#/components/schemas/PageMetadata"
+    PagedResponseDTOAssociationBasicDTO:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssociationBasicDTO"
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        last:
+          type: boolean
+        first:
+          type: boolean

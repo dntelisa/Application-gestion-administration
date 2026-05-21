@@ -1,5 +1,11 @@
 package es.codeurjc.helloword_vscode.model;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -7,9 +13,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.Map;
 
 @Entity
 public class Member {
@@ -25,8 +28,8 @@ public class Member {
 	private List<String> roles;
 
     // A list of membership types associated with the user
-    @OneToMany(mappedBy = "member")
-    private List<MemberType> memberTypes;
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MemberType> memberTypes = new ArrayList<>();
 
     /* Default constructor */
     public Member() {}
@@ -110,6 +113,10 @@ public class Member {
             .flatMap(mt -> mt.getAssociation().getMinutes().stream())
             .filter(minute -> minute.getParticipants().contains(this))
             .collect(Collectors.toList());
+    }
+
+    public void setMemberTypes(List<MemberType> memberTypes) {
+        this.memberTypes = memberTypes;
     }
     
 }

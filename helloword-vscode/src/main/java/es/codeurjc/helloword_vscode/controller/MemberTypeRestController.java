@@ -1,0 +1,130 @@
+package es.codeurjc.helloword_vscode.controller;
+
+import java.sql.SQLException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import es.codeurjc.helloword_vscode.ResourceNotFoundException;
+import es.codeurjc.helloword_vscode.dto.AssociationDTO;
+import es.codeurjc.helloword_vscode.dto.EditMTRequestDTO;
+import es.codeurjc.helloword_vscode.dto.MemberDTO;
+import es.codeurjc.helloword_vscode.dto.MemberTypeDTO;
+import es.codeurjc.helloword_vscode.dto.NewMTRequestDTO;
+import es.codeurjc.helloword_vscode.service.AssociationService;
+import es.codeurjc.helloword_vscode.service.MemberService;
+import es.codeurjc.helloword_vscode.service.MemberTypeService;
+
+/*
+ * REST controller for managing member types.
+ * Provides endpoints to create, read, update, and delete member types.
+ */
+@RestController
+@RequestMapping("/api/memberTypes")
+public class MemberTypeRestController {
+    
+    @Autowired
+    private MemberTypeService memberTypeService;
+
+    @Autowired
+    private MemberService memberService;
+
+    @Autowired
+    private AssociationService associationService;
+
+    // GET all member types
+    @GetMapping("/")
+    public Page<MemberTypeDTO> getAllMemberTypes(Pageable pageable) {
+        return memberTypeService.getAllMemberTypes(pageable);
+    }
+    // GET all member types
+    // @GetMapping("/")
+    // public Collection<MemberTypeDTO> getAllMemberTypes() {
+    //     return memberTypeService.findAllMTDTOs();
+    // }
+
+    // GET one member type by id
+    @GetMapping("/{id}")
+    public ResponseEntity<MemberTypeDTO> getMemberType(@PathVariable long id) {
+        try {
+            MemberTypeDTO memberType = memberTypeService.findByIdMTDTO(id);
+            return ResponseEntity.ok(memberType);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // POST create new member type
+    @PostMapping("/")
+    public ResponseEntity<MemberTypeDTO> createMemberType(
+            @RequestBody NewMTRequestDTO requestDTO,
+            Authentication authentication) {
+
+        try {
+            // Retrieve the member and association DTOs
+            MemberDTO memberDTO = memberService.findByIdDTO(requestDTO.memberId());
+            AssociationDTO associationDTO = associationService.findByIdDTO(requestDTO.associationId());
+
+            // Call the service
+            MemberTypeDTO created = memberTypeService.createMemberType(memberDTO, associationDTO, requestDTO.memberType(), authentication);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+
+
+
+
+    // PUT update member type
+    @PutMapping("/{id}")
+    public ResponseEntity<MemberTypeDTO> updateMemberType(
+            @PathVariable long id,
+            @RequestBody EditMTRequestDTO updatedDTO,
+            Authentication authentication) throws SQLException {
+        try {
+            MemberTypeDTO updated = memberTypeService.updateMTDTO(id, updatedDTO, authentication);
+            return ResponseEntity.ok(updated);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+
+    // DELETE member type
+    @DeleteMapping("/{id}")
+    public ResponseEntity<MemberTypeDTO> deleteMemberType(
+            @PathVariable long id,
+            Authentication authentication) {
+        try {
+            MemberTypeDTO deleted = memberTypeService.deleteMemberType(id, authentication);
+            return ResponseEntity.ok(deleted);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+
+}

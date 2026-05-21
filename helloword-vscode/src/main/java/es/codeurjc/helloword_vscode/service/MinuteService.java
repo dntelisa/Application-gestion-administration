@@ -1,25 +1,32 @@
 package es.codeurjc.helloword_vscode.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import es.codeurjc.helloword_vscode.ResourceNotFoundException;
-import es.codeurjc.helloword_vscode.model.Association;
-import es.codeurjc.helloword_vscode.model.Minute;
-import es.codeurjc.helloword_vscode.model.Member;
-import es.codeurjc.helloword_vscode.repository.MinuteRepository;
-
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+
+import es.codeurjc.helloword_vscode.ResourceNotFoundException;
+import es.codeurjc.helloword_vscode.dto.AssociationDTO;
+import es.codeurjc.helloword_vscode.dto.AssociationMapper;
+import es.codeurjc.helloword_vscode.dto.EditMinuteRequestDTO;
+import es.codeurjc.helloword_vscode.dto.MemberDTO;
+import es.codeurjc.helloword_vscode.dto.MemberMapper;
+import es.codeurjc.helloword_vscode.dto.MinuteDTO;
+import es.codeurjc.helloword_vscode.dto.MinuteMapper;
+import es.codeurjc.helloword_vscode.dto.NewMinuteRequestDTO;
+import es.codeurjc.helloword_vscode.model.Association;
+import es.codeurjc.helloword_vscode.model.Member;
+import es.codeurjc.helloword_vscode.model.Minute;
+import es.codeurjc.helloword_vscode.repository.MinuteRepository;
 
 /**
  * This service class provides methods to perform various operations on Minute entities,
@@ -36,13 +43,16 @@ public class MinuteService {
 	private AssociationService associationService;
 
 	@Autowired
+	private AssociationMapper associationMapper;
+
+	@Autowired
 	private MemberService memberService;
 
+	@Autowired
+	private MinuteMapper minuteMapper;
 
-	/* Find all minutes */
-    public List<Minute> findAll() {
-		return minuteRepository.findAll();
-	}
+	@Autowired
+	private MemberMapper memberMapper;
 
 
 	/* Save minute */
@@ -50,114 +60,263 @@ public class MinuteService {
 		minuteRepository.save(minute);
 	}
 
-
 	/* Find minute by ID */
-	public Optional<Minute> findById(long id){
-		return minuteRepository.findById(id);
+	public MinuteDTO findByIdDTO(long id){
+		return toDTO(minuteRepository.findById(id).orElseThrow());
 	}
-
-
-	/* Delete minute and update association */
-	public void delete(Minute minute, Long assoId, List <Member> members) {
-		// Retrieve the association by ID
-		Association association = associationService.findById(assoId).orElseThrow();
-
-        // Remove the minute from the association's list of minutes		
-		association.getMinutes().remove(minute);
-		
-		// Remove the minute from each user's list of minutes
-		for (Member member : members ){
-			member.getMinutes().remove(minute);
-		}
-
-		// Delete the minute from the repository
-		this.minuteRepository.delete(minute);
-	}
-
 
 	/* Delete minute with association and minute ID */
-	public void deleteMinuteById(Long minuteId, Long assoId) {
+	public MinuteDTO deleteMinuteByIdDTO(Long minuteId, Long assoId) {
         Minute minute = minuteRepository.findById(minuteId)
             .orElseThrow(() -> new ResourceNotFoundException("Minute not found with id: " + minuteId));
-        Association association = associationService.findById(assoId)
-            .orElseThrow(() -> new ResourceNotFoundException("Association not found with id: " + assoId));
+        
+		MinuteDTO minuteDTO = toDTO(minute);
 
-        association.getMinutes().remove(minute);
+		// Retrieve the association by ID
+		Association association = associationService.findById(assoId);
+
+        // Remove the minute from the association's list of minutes
+		association.getMinutes().remove(minute);
+		
         for (Member member : minute.getParticipants()) {
             member.getMinutes().remove(minute);
         }
         minuteRepository.delete(minute);
+
+		return minuteDTO;
     }
 
+	/* Delete minute with the controller rest */
+	public MinuteDTO deleteMinuteByIdDTORest(Long minuteId) {
+		Minute minute = minuteRepository.findById(minuteId)
+			.orElseThrow(() -> new ResourceNotFoundException("Minute not found with id: " + minuteId));
 
-	/* Find all Minute entities that contain the specified participant */
-	List<Minute> findAllByParticipantsContains(Member participant){
-		return minuteRepository.findAllByParticipantsContains(participant);
+		MinuteDTO minuteDTO = toDTO(minute);
+
+		// Dissociate the minute from the association
+		Association association = minute.getAssociation();
+		if (association != null) {
+			association.getMinutes().remove(minute);
+		}
+
+		// Dissociate the participants
+		for (Member member : minute.getParticipants()) {
+			member.getMinutes().remove(minute);
+		}
+
+		// Delete the minute
+		minuteRepository.delete(minute);
+
+		return minuteDTO;
 	}
 
-	/* Create new minute */
-	public Map<String, Object> processCreateMinute(Association association, String dateStr, List<Long> participantIds, String content, double duration) {
-		Map<String, Object> model = new HashMap<>();
-		model.put("association", association);
-		model.put("members", association.getMembers());
+	/* Methode to create a new minute web controller */
+	public MinuteDTO createMinute(AssociationDTO associationDTO, NewMinuteRequestDTO dto) {
 
+		// Parse and validate date
+		LocalDate date;
 		try {
-			LocalDate date = LocalDate.parse(dateStr);
-			if (date.isAfter(LocalDate.now())) {
-				model.put("error", "The date can not be in the futur");
-				return model;
-			}
+			date = LocalDate.parse(dto.date());
+		} catch (DateTimeParseException e) {
+			throw new IllegalArgumentException("Invalid date format.");
+		}
 
-			Minute minute = new Minute();
-			minute.setDate(dateStr);
-			List<Member> participants = participantIds.stream()
-				.map(id -> memberService.findById(id).orElse(null))
+		if (date.isAfter(LocalDate.now())) {
+			throw new IllegalArgumentException("The date cannot be in the future.");
+		}
+
+		Association association = toDomain(associationDTO);
+
+		List<Member> participants = dto.participantsIds().stream()
+			.map(id -> memberService.findById(id))
+			.filter(Objects::nonNull)
+			.collect(Collectors.toList());
+
+		Minute minute = new Minute();
+		minute.setDate(dto.date());
+		minute.setParticipants(participants);
+		minute.setContent(dto.content());
+		minute.setDuration(dto.duration());
+		minute.setAssociation(association);
+
+		minuteRepository.save(minute);
+
+		return toDTO(minute);
+	}
+
+	/* Methode to create a new minute rest controller */
+	public MinuteDTO createMinute(AssociationDTO associationDTO, NewMinuteRequestDTO dto, Authentication authentication) {
+
+		// Parse and validate date
+		LocalDate date;
+		try {
+			date = LocalDate.parse(dto.date());
+		} catch (DateTimeParseException e) {
+			throw new IllegalArgumentException("Invalid date format.");
+		}
+
+		if (date.isAfter(LocalDate.now())) {
+			throw new IllegalArgumentException("The date cannot be in the future.");
+		}
+
+		// Convert DTO to entity
+		Association association = associationService.findById(associationDTO.id());
+
+		// Retrieve current user
+		String loggedUsername = authentication.getName();
+		Member currentMember = memberService.findByName(loggedUsername);
+
+		// Verify user is part of the association
+		boolean isMemberOfAssociation = association.getMemberTypes().stream()
+				.anyMatch(mt -> mt.getMember().getId() == currentMember.getId());
+
+		// Verify user is admin
+		boolean isAdmin = authentication.getAuthorities().stream()
+              .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+
+		if (!isMemberOfAssociation && !isAdmin) {
+			throw new SecurityException("You are not a member of this association or admin.");
+		}
+
+		// Build participant list
+		List<Member> participants = dto.participantsIds().stream()
+				.map(id -> memberService.findById(id))
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
-			minute.setParticipants(participants);
-			minute.setContent(content);
-			minute.setDuration(duration);
-			minute.setAssociation(association);
 
-			minuteRepository.save(minute);
-			return model;
-		} catch (DateTimeParseException e) {
-			model.put("error", "Invalid date format.");
-			return model;
+		// Build and save the minute
+		Minute minute = new Minute();
+		minute.setDate(dto.date());
+		minute.setParticipants(participants);
+		minute.setContent(dto.content());
+		minute.setDuration(dto.duration());
+		minute.setAssociation(association);
+
+		minuteRepository.save(minute);
+
+		return toDTO(minute);
+	}
+
+
+	/* Method to find all the members of an association */
+	public List<MemberDTO> findMembersDTO(AssociationDTO associationDTO){
+			return memberService.findMembersByAssociationId(associationDTO.id());
 		}
-	}
 
-	public List<Member> findMembers(Association association){
-		return association.getMembers();
-	}
 
 	/* Find participants of a meeting */
-	public List<Member> findParticipants(Minute minute){
-		return minute.getParticipants();
+	public List<MemberDTO> findParticipantsDTO(MinuteDTO minuteDTO){
+		return minuteDTO.participants();
 	}
 
-	/* Find association members who didn't attend the meeting */
-	public Collection<Member> findNoParticipants(Association association, Minute minute){
-		// Create a list of members who did not participate in the meeting
-        Collection<Member> members = association.getMembers();;
-        Collection<Member> participants = minute.getParticipants();
-        Collection<Member> memberNoPart = new HashSet<Member>();
-        memberNoPart.addAll(members);
-        memberNoPart.removeAll(participants);
-		return memberNoPart;
+	 /* Method to find members of an association that are not participants of a minute */
+	public List<MemberDTO> findNoParticipantsDTO(AssociationDTO associationDTO, MinuteDTO minuteDTO){
+		List<MemberDTO> members = memberService.findMembersByAssociationId(associationDTO.id());
+		Set<Long> participantIds = minuteDTO.participants().stream().map(MemberDTO::id).collect(Collectors.toSet());
+		return members.stream().filter(m -> !participantIds.contains(m.id())).collect(Collectors.toList());
 	}
 
-	public void update(Minute minute, String date, List<Long> participantsIds, String content, double duration, Association association){
-        // Update minute attributes
-        minute.setDate(date);
-        List<Member> participants = participantsIds.stream()
-            .map(participantId -> memberService.findById(participantId).orElse(null))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-        minute.setParticipants(participants);
-        minute.setContent(content);
-        minute.setDuration(duration);
-        minute.setAssociation(association);
+	/* Method to update minute for web controller */
+	public void updateDTO(EditMinuteRequestDTO dto) throws IOException {
+		// Retrieving the minute
+		Minute minute = minuteRepository.findById(dto.minuteId())
+			.orElseThrow(() -> new ResourceNotFoundException("Minute not found"));
+
+		// Retrieving association with DTO
+		AssociationDTO associationDTO = associationService.findByIdDTO(dto.assoId());
+		Association association = toDomain(associationDTO);
+
+		// Verify and convert date
+		LocalDate date;
+		try {
+			date = LocalDate.parse(dto.date());
+		} catch (DateTimeParseException e) {
+			throw new IllegalArgumentException("Invalid date format.");
+		}
+
+		if (date.isAfter(LocalDate.now())) {
+			throw new IllegalArgumentException("The date cannot be in the future.");
+		}
+
+		// Retrieving of the members
+		List<Member> participants = dto.participantsIds().stream()
+			.map(id -> memberService.findById(id))
+			.filter(Objects::nonNull)
+			.collect(Collectors.toList());
+
+		// Update minute
+		minute.setDate(dto.date());
+		minute.setParticipants(participants);
+		minute.setContent(dto.content());
+		minute.setDuration(dto.duration());
+		minute.setAssociation(association);
+
 		minuteRepository.save(minute);
 	}
+
+
+	/* Method to update minute for rest controller */
+	public MinuteDTO updateDTO(Long minuteId, EditMinuteRequestDTO dto) {
+		Minute minute = minuteRepository.findById(minuteId)
+			.orElseThrow(() -> new ResourceNotFoundException("Minute not found"));
+
+		// Parse date
+		LocalDate date;
+		try {
+			date = LocalDate.parse(dto.date());
+		} catch (DateTimeParseException e) {
+			throw new IllegalArgumentException("Invalid date format.");
+		}
+
+		if (date.isAfter(LocalDate.now())) {
+			throw new IllegalArgumentException("The date cannot be in the future.");
+		}
+
+		// Fetch participants
+		List<Member> participants = dto.participantsIds().stream()
+			.map(id -> memberService.findById(id))
+			.filter(Objects::nonNull)
+			.collect(Collectors.toList());
+
+		// Update fields
+		minute.setDate(dto.date());
+		minute.setParticipants(participants);
+		minute.setContent(dto.content());
+		minute.setDuration(dto.duration());
+
+		// Save and return DTO
+		return toDTO(minuteRepository.save(minute));
+	}
+
+	/* Find all minutes with pagination */
+    public Page<MinuteDTO> getAllMinutes(Pageable pageable) {
+        return minuteRepository.findAll(pageable)
+                .map(minuteMapper::toDTO);
+    }
+
+	/* Convert entity to DTO */
+	public MinuteDTO toDTO(Minute minute) {
+		return minuteMapper.toDTO(minute);
+	}
+
+	/* Convert a minutes set to DTOs */
+	// private Collection<MinuteDTO> toDTOs(Collection<Minute> minutes) {
+	// 	return minuteMapper.toDTOs(minutes);
+	// }
+
+	/* Convert a DTO to entity */
+	public Minute toDomain(MinuteDTO minuteDTO){
+		return minuteMapper.toDomain(minuteDTO);
+	}
+
+	/* Convert a DTO to entity */
+	public Member toDomainMember(MemberDTO memberDTO){
+		return memberMapper.toDomain(memberDTO);
+	}
+
+	/* Converted a DTO to entity */
+	private Association toDomain(AssociationDTO associationDTO){
+		return associationMapper.toDomain(associationDTO);
+	}
+
 }

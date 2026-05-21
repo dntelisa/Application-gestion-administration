@@ -1,18 +1,16 @@
 package es.codeurjc.helloword_vscode.model;
 
+import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
-import java.sql.Blob;
-
-import jakarta.persistence.CascadeType;
 
 @Entity
 public class Association {
@@ -26,24 +24,37 @@ public class Association {
     @Lob
     private Blob imageFile;
 
+    private String imagePath; 
+
+    private boolean image;
+
     @OneToMany(mappedBy = "association", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MemberType> memberTypes;
+    private List<MemberType> memberTypes = new ArrayList<>();
     
     @OneToMany(mappedBy = "association", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Minute> minutes;    
+    private List<Minute> minutes = new ArrayList<>();   
 
 
     /* Default constructor */
     public Association() {}
 
 
-    /* Constructor with name and image file*/
+    /**
+     * Parameterized constructor to initialize the association with a name and an image file.
+     *
+     * @param name The name of the association.
+     * @param imgAsso The image file path or identifier for the association.
+    */
     public Association(String name, String imgAsso) {
         this.name = name;
         this.memberTypes = new ArrayList<>();
     }
 
-    /* Constructor only with name */
+    /**
+     * Parameterized constructor to initialize the association with a name.
+     *
+     * @param name The name of the association.
+     */
     public Association(String name) {
         this.name = name;
         this.memberTypes = new ArrayList<>();
@@ -58,6 +69,22 @@ public class Association {
 
 	public void setImageFile(Blob imageFile) {
 		this.imageFile = imageFile;
+	}
+
+    public boolean getImage(){
+		return this.image;
+	}
+
+    public void setImage(boolean image){
+		this.image = image;
+	}
+
+    public void setImagePath(String imagePath){
+		this.imagePath = imagePath;
+	}
+
+    public String getImagePath(){
+		return imagePath;
 	}
 
     public long getId() {
@@ -90,25 +117,6 @@ public class Association {
 
     public void setMinutes(List<Minute> minutes) {
         this.minutes = minutes;
-    }
-
-    public List<Member> getMembers() {
-        // Retrieve all users associated with this association
-        return memberTypes.stream()
-                     .map(MemberType::getMember)
-                     .collect(Collectors.toList());
-    }
-
-    public void setMembers(List<Member> members) {
-        // Assure that all users has a role in their association
-        this.memberTypes = members.stream()
-                            .map(member -> {
-                                MemberType memberType = new MemberType();
-                                memberType.setMember(member);
-                                memberType.setAssociation(this);
-                                return memberType;
-                            })
-                            .collect(Collectors.toList());
     }
 }
 

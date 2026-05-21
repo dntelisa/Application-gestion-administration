@@ -3,25 +3,22 @@ package es.codeurjc.helloword_vscode.controller;
 import java.security.Principal;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import es.codeurjc.helloword_vscode.model.Member;
+import es.codeurjc.helloword_vscode.dto.AssociationDTO;
+import es.codeurjc.helloword_vscode.dto.MemberDTO;
+import es.codeurjc.helloword_vscode.service.AssociationService;
 import es.codeurjc.helloword_vscode.service.MemberService;
 import es.codeurjc.helloword_vscode.service.MemberTypeService;
 
-
+/*
+ * Controller for managing member types in associations.
+ * Provides endpoints to change the role of a member in an association.
+ */
 @Controller
 public class MemberTypeWebController {
 
@@ -29,29 +26,12 @@ public class MemberTypeWebController {
     private MemberTypeService memberTypeService;
 
     @Autowired
+    private AssociationService associationService;
+
+    @Autowired
     private MemberService memberService;
 
-    /* Adds authentication attributes to all templates */ 
-    @ModelAttribute
-    public void addAttributes(Model model, HttpServletRequest request) {
-        // Retrieve the current authentication information        
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAuthenticated = auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName());
-        
-        // Determine if the user is authenticated and not anonymous
-        model.addAttribute("isAuthenticated", isAuthenticated);
-        
-        // Determine if the user is admin
-        model.addAttribute("isAdmin", request.isUserInRole("ADMIN"));
-
-        // If authenticated, add the username to the model
-        if (isAuthenticated && auth.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) auth.getPrincipal();
-            model.addAttribute("username", userDetails.getUsername());
-        }
-    }
-
-
+    /* Process to change the member type of someone who part of an association */
     @PostMapping("/association/{id}/changeRole")
     public String changeMemberRole(
         @PathVariable Long id,
@@ -61,19 +41,26 @@ public class MemberTypeWebController {
         RedirectAttributes redirectAttributes
     ) {
         try {
-            Member requester = memberService.findByName(principal.getName())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            // Retrieve DTOs
+            MemberDTO requesterDTO = memberService.findByNameDTO(principal.getName());
+            AssociationDTO associationDTO = associationService.findByIdDTO(id);
 
-            memberTypeService.changeMemberRole(id, requester.getId(), memberTypeId, newRole);
+            // Call service
+            memberTypeService.changeMemberRole(associationDTO, requesterDTO, memberTypeId, newRole);
+
             redirectAttributes.addFlashAttribute("success", "Role updated successfully.");
+
         } catch (SecurityException e) {
             redirectAttributes.addFlashAttribute("roleChangeError", e.getMessage());
+
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("roleChangeError", "An unexpected error occurred.");
         }
 
         return "redirect:/association/" + id;
     }
+
+
 
 
     

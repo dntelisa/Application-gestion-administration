@@ -3,11 +3,12 @@ package es.codeurjc.helloword_vscode.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,13 +16,22 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import es.codeurjc.helloword_vscode.ResourceNotFoundException;
+import es.codeurjc.helloword_vscode.dto.AssociationMemberTypeDTO;
+import es.codeurjc.helloword_vscode.dto.AssociationMemberTypeMapper;
+import es.codeurjc.helloword_vscode.dto.MemberDTO;
+import es.codeurjc.helloword_vscode.dto.MemberDetailsDTO;
+import es.codeurjc.helloword_vscode.dto.MemberMapper;
+import es.codeurjc.helloword_vscode.dto.MinuteLightDTO;
+import es.codeurjc.helloword_vscode.dto.NewMemberRequestDTO;
+import es.codeurjc.helloword_vscode.dto.PagedResponseDTO;
+import es.codeurjc.helloword_vscode.model.Association;
+import es.codeurjc.helloword_vscode.model.Member;
 import es.codeurjc.helloword_vscode.model.MemberType;
 import es.codeurjc.helloword_vscode.model.Minute;
-import es.codeurjc.helloword_vscode.dto.AssociationMemberTypeDTO;
-import es.codeurjc.helloword_vscode.model.Member;
 import es.codeurjc.helloword_vscode.repository.MemberRepository;
+import es.codeurjc.helloword_vscode.repository.MinuteRepository;
 
 /*
  * This service class provides methods to perform various operations on Member entities,
@@ -40,22 +50,62 @@ public class MemberService implements UserDetailsService {
 	private MemberTypeService memberTypeService;
 
 	@Autowired
-	@Lazy
-	private MinuteService minuteService;
+	private MinuteRepository minuteRepository;
 
 	@Autowired
-	@Lazy
     private PasswordEncoder passwordEncoder;
+
+	@Autowired
+	private AssociationMemberTypeMapper associationMemberTypeMapper;
+
+	@Autowired
+	private MemberMapper memberMapper;
+
+	@Autowired
+	private AssociationService associationService;
 
 	/* Save user */
     public void save(Member member) {
 		memberRepository.save(member);
 	}
 
+	/* Create User */
+	public MemberDTO createMember(NewMemberRequestDTO memberDTO) {
+		try {
+			MemberDTO existingMember = findByNameDTO(memberDTO.name());
+			if (existingMember != null) {
+				throw new IllegalArgumentException("This username already exists");
+			}
+		} catch (ResourceNotFoundException e) {
+			// If no member is found, continue with member creation
+		}
+
+		// By default, a new user is necessarily user
+		Member member = new Member(
+			memberDTO.name(),
+			memberDTO.surname(),
+			passwordEncoder.encode(memberDTO.password()),
+			"USER"
+		);
+
+		save(member);
+
+		return toDTO(member);
+	}
+
+
 
 	/* Find user by their name */
-	public Optional<Member> findByName(String name) {
-		return memberRepository.findByName(name);
+	public Member findByName(String name) {
+		return memberRepository.findByName(name).orElseThrow(() -> new ResourceNotFoundException("User not found: " + name));
+	}
+
+	/* Find user by their name and return DTO */
+	public MemberDTO findByNameDTO(String name) {
+		return toDTO(
+			memberRepository.findByName(name)
+				.orElseThrow(() -> new ResourceNotFoundException("User not found: " + name))
+		);
 	}
 
 
@@ -79,72 +129,90 @@ public class MemberService implements UserDetailsService {
 
 
 	/* Find user by ID */
-	public Optional<Member> findById(long id) {
-		return memberRepository.findById(id);
+	public Member findById(long id) {
+		return memberRepository.findById(id) .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
 	}
 
-
-	/* Find all users */
-	public List<Member> findAll() {
-		return memberRepository.findAll();
+	/* Find user by ID and return DTO*/
+	public MemberDTO findByIdDTO(long id) {
+		return toDTO(memberRepository.findById(id).orElseThrow());
 	}
 
+	/* All details of an user */
+	public MemberDetailsDTO findDetailsById(Long id) {
+		Member member = memberRepository.findById(id)
+			.orElseThrow(() -> new ResourceNotFoundException("Member not found"));
 
-	/* Delete user by ID */
-	@Transactional
-	public void deleteById(long id) throws IOException {
-		// Retrieve user by ID
-		Optional<Member> optUser = memberRepository.findById(id);
-		if (optUser.isPresent()) {
-			Member user = optUser.get();
 
-			// 1. Delete member type in association
-			List<MemberType> memberTypes = memberTypeService.findByMember(user);
-			for (MemberType memberType : memberTypes) {
-				memberTypeService.delete(memberType);
-			}
+		List<AssociationMemberTypeDTO> roles = associationMemberTypeMapper.toDTOs(member.getMemberTypes());
+		List<MinuteLightDTO> minutes = memberMapper.toShortMinutes(member.getMinutes());
 
-			// 2. Delete participation to meetings
-			List<Minute> minutes = minuteService.findAllByParticipantsContains(user);
-			for (Minute minute : minutes) {
-				minute.getParticipants().remove(user);
-				minuteService.save(minute);
-			}
-
-			// 3. Delete user
-			memberRepository.delete(user);
-		}
+		return new MemberDetailsDTO(
+			member.getId(),
+			member.getName(),
+			member.getSurname(),
+			roles,
+			minutes
+		);
 	}
-
 
 	/* Update user */
-    public void updateUser(String username, String name, String surname, String password) {
-        Optional<Member> optUser = findByName(username);
-        if (optUser.isPresent()) {
-            Member user = optUser.get();
+	public void updateUserDTO(String currentUsername, NewMemberRequestDTO dto) {
+		Member member = findByName(currentUsername);
 
-            if (!user.getName().equals(name) && findByName(name).isPresent()) {
-                throw new IllegalArgumentException("This username already exists");
-            }
+		if (!member.getName().equals(dto.name())) {
+			try {
+				findByName(dto.name());
+				// Si on arrive ici = username existe déjà
+				throw new IllegalArgumentException("This username already exists");
+			} catch (ResourceNotFoundException e) {
+				// Si exception = c'est OK = username n'existe pas encore
+			}
+		}
 
-            user.setName(name);
-            user.setSurname(surname);
-            if (password != null && !password.isBlank()) {
-                user.setPwd(passwordEncoder.encode(password));
-            }
-            save(user);
-        }
-    }
+		member.setName(dto.name());
+		member.setSurname(dto.surname());
+
+		if (dto.password() != null && !dto.password().isBlank()) {
+			member.setPwd(passwordEncoder.encode(dto.password()));
+		}
+
+		save(member);
+	}
 
 
-	/* Create user */
-	public void createUser(String name, String surname, String password) {
-        if (findByName(name).isPresent()) {
-            throw new IllegalArgumentException("This username already exists");
-        }
-        Member user = new Member(name, surname, passwordEncoder.encode(password), "USER");
-        save(user);
-    }
+	/* Update user by id and return DTO */
+	public MemberDTO updateUserIdDTO(Long id, NewMemberRequestDTO dto, Authentication authentication) {
+		Member member = findById(id);
+
+		String loggedUsername = authentication.getName();
+		boolean isAdmin = authentication.getAuthorities().stream()
+				.anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+
+		if (!member.getName().equalsIgnoreCase(loggedUsername) && !isAdmin) {
+			throw new SecurityException("You are not allowed to update this profile.");
+		}
+
+		if (!member.getName().equals(dto.name())) {
+			try {
+				findByName(dto.name());
+				throw new IllegalArgumentException("This username already exists");
+			} catch (ResourceNotFoundException e) {
+				// OK: username n’existe pas encore
+			}
+		}
+
+		member.setName(dto.name());
+		member.setSurname(dto.surname());
+
+		if (dto.password() != null && !dto.password().isBlank()) {
+			member.setPwd(passwordEncoder.encode(dto.password()));
+		}
+
+		save(member);
+		return toDTO(member);
+	}
+
 
 	/* Delete user */
 	public void delete(Member member) throws IOException {
@@ -158,25 +226,124 @@ public class MemberService implements UserDetailsService {
 		}
 
 		// 2. Delete participation to meetings
-		List<Minute> minutes = minuteService.findAllByParticipantsContains(user);
+		List<Minute> minutes = minuteRepository.findAllByParticipantId(member.getId());
 		for (Minute minute : minutes) {
-			minute.getParticipants().remove(user);
-			minuteService.save(minute);
+			minute.getParticipants().remove(member);
+			minuteRepository.save(minute);
 		}
 
 		// 3. Delete user
 		memberRepository.delete(user);
 	}
-	
-	/* Find all the user's role in associations */
-	public List<AssociationMemberTypeDTO> getAssociationRoles(Member member) {
-    return member.getMemberTypes().stream()
-        .map(mt -> new AssociationMemberTypeDTO(mt.getAssociation(), mt.getName()))
-        .collect(Collectors.toList());
+
+
+	/* Delete user by id and return DTO */
+	public MemberDTO deleteMemberDTO(Long memberId) throws IOException {
+		// Retrieve the complete entity
+		Member member = memberRepository.findById(memberId)
+			.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		// Convert to DTO before deletion to avoid lazy loading issues later
+		MemberDTO memberDTO = toDTO(member);
+
+		// Delete member types in associations
+		List<MemberType> memberTypes = memberTypeService.findByMember(member);
+		for (MemberType memberType : memberTypes) {
+			memberTypeService.delete(memberType);
+		}
+
+		// Remove participation in meetings
+		List<Minute> minutes = minuteRepository.findAllByParticipantId(member.getId());
+		for (Minute minute : minutes) {
+			minute.getParticipants().remove(member);
+			minuteRepository.save(minute);
+		}
+
+		memberRepository.delete(member);
+
+		return memberDTO;
 	}
 
-	/* Find all the user's minutes */
-	public List<Minute> getUserMinutes(Member member) {
-		return member.getMinutes();
+	/* Method that permit to an user to delete his own account and return DTO */
+	public MemberDTO deleteMemberDTO(Long memberId, Authentication authentication) throws IOException {
+		
+		// Retrieve the complete entity
+		Member member = memberRepository.findById(memberId)
+			.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		// Authorization check: only the user himself or an admin can delete
+		String loggedUsername = authentication.getName();
+
+		boolean isAdmin = authentication.getAuthorities().stream()
+			.anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+
+		if (!member.getName().equalsIgnoreCase(loggedUsername) && !isAdmin) {
+			throw new SecurityException("You are not allowed to delete this profile.");
+		}
+
+		// Convert to DTO before deletion to avoid lazy loading issues later
+		MemberDTO memberDTO = toDTO(member);
+
+		// Delete member types in associations
+		List<MemberType> memberTypes = memberTypeService.findByMember(member);
+		for (MemberType memberType : memberTypes) {
+			memberTypeService.delete(memberType);
+		}
+
+		// Remove participation in meetings
+		List<Minute> minutes = minuteRepository.findAllByParticipantId(member.getId());
+		for (Minute minute : minutes) {
+			minute.getParticipants().remove(member);
+			minuteRepository.save(minute);
+		}
+
+		memberRepository.delete(member);
+
+		return memberDTO;
 	}
+
+	/* Find all members of an association */
+	public List<MemberDTO> findMembersByAssociationId(Long associationId) {
+		List<Member> members = memberRepository.findMembersByAssociationId(associationId);
+		return members.stream().map(this::toDTO).toList();
+	}
+
+	/* Get all members with pagination */
+	public PagedResponseDTO<MemberDTO> getPagedMembers(Pageable pageable) {
+		Page<Member> page = memberRepository.findAll(pageable);
+
+		List<MemberDTO> dtoList = page.getContent().stream()
+			.map(memberMapper::toDTO)
+			.collect(Collectors.toList());
+
+		return new PagedResponseDTO<>(
+			dtoList,
+			page.getNumber(),
+			page.getSize(),
+			page.getTotalElements(),
+			page.getTotalPages(),
+			page.isLast(),
+			page.isFirst()
+		);
+	}
+
+	/* Convert entity to DTO */
+	private MemberDTO toDTO(Member member) {
+		return memberMapper.toDTO(member);
+	}
+
+	/* Converted a member to DTO */
+	public MemberDTO toDTO(MemberDetailsDTO details) {
+		return new MemberDTO(details.id(), details.name(), details.surname());
+	}
+
+	// /* Converted a member set to DTOs */
+	// private Collection<MemberDTO> toDTOs(Collection<Member> members) {
+	// 	return memberMapper.toDTOs(members);
+	// }
+
+	// /* Converted a DTO to entity */
+	// private Member toDomain(MemberDTO memberDTO){
+	// 	return memberMapper.toDomain(memberDTO);
+	// }
 }
